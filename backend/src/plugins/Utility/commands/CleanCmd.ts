@@ -11,8 +11,8 @@ import { DAYS, SECONDS, chunkArray, getInviteCodesInString, noop } from "../../.
 import { LogsPlugin } from "../../Logs/LogsPlugin";
 import { UtilityPluginType, utilityCmd } from "../types";
 
-const MAX_CLEAN_COUNT = 300;
-const MAX_CLEAN_TIME = 1 * DAYS;
+const MAX_CLEAN_COUNT = 1000;
+const MAX_CLEAN_TIME = 14 * DAYS;
 const MAX_CLEAN_API_REQUESTS = 20;
 const CLEAN_COMMAND_DELETE_DELAY = 10 * SECONDS;
 
