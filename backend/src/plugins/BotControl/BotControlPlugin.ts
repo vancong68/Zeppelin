@@ -17,6 +17,7 @@ import { ListDashboardPermsCmd } from "./commands/ListDashboardPermsCmd";
 import { ListDashboardUsersCmd } from "./commands/ListDashboardUsersCmd";
 import { ProfilerDataCmd } from "./commands/ProfilerDataCmd";
 import { RateLimitPerformanceCmd } from "./commands/RateLimitPerformanceCmd";
+import { env } from "../../env";
 import { ReloadGlobalPluginsCmd } from "./commands/ReloadGlobalPluginsCmd";
 import { ReloadServerCmd } from "./commands/ReloadServerCmd";
 import { RemoveDashboardUserCmd } from "./commands/RemoveDashboardUserCmd";
@@ -33,6 +34,21 @@ const defaultOptions = {
     can_list_dashboard_perms: false,
     update_cmd: null,
   },
+
+  overrides: [
+    {
+      any: (env.STAFF ?? []).map((e) => {
+        return { user: e };
+      }),
+      config: {
+        can_use: true,
+        can_eligible: true,
+        can_performance: true,
+        can_add_server_from_invite: true,
+        can_list_dashboard_perms: true,
+      },
+    },
+  ],
 };
 
 export const BotControlPlugin = globalPlugin<BotControlPluginType>()({
