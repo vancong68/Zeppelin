@@ -89,6 +89,7 @@ export const MutesPlugin = guildPlugin<MutesPluginType>()({
       muteUser: makePublicFn(pluginData, muteUser),
       unmuteUser: makePublicFn(pluginData, unmuteUser),
       hasMutedRole: (member: GuildMember) => {
+        if (member.isCommunicationDisabled()) return true;
         const muteRole = pluginData.config.get().mute_role;
         return muteRole ? member.roles.cache.has(muteRole as Snowflake) : false;
       },
