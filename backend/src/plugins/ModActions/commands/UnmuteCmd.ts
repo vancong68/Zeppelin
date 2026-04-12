@@ -64,7 +64,6 @@ export const UnmuteCmd = modActionsCmd({
         );
         return;
       } else {
-        // Ask the mod if we should upgrade to a forceunmute as the user is not on the server
         const reply = await waitForButtonConfirm(
           msg.channel,
           { content: "User not on server, forceunmute instead?" },
@@ -78,7 +77,6 @@ export const UnmuteCmd = modActionsCmd({
       }
     }
 
-    // Make sure we're allowed to unmute this member
     if (memberToUnmute && !canActOn(pluginData, msg.member, memberToUnmute)) {
       sendErrorMessage(pluginData, msg.channel, "Cannot unmute: insufficient permissions");
       return;
