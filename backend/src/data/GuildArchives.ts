@@ -11,7 +11,7 @@ import { dataSource } from "./dataSource";
 import { ArchiveEntry } from "./entities/ArchiveEntry";
 import { SavedMessage } from "./entities/SavedMessage";
 
-const DEFAULT_EXPIRY_DAYS = 30;
+const DEFAULT_EXPIRY_DAYS = 90;
 
 const MESSAGE_ARCHIVE_HEADER_FORMAT = trimLines(`
   Server: {guild.name} ({guild.id})
