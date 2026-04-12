@@ -50,7 +50,7 @@ export async function muteUser(
   const muteExpiresAt = muteTime ? Date.now() + muteTime : null;
   const timeoutUntil = getTimeoutExpiryTime(muteExpiresAt);
 
-  // APPLY PATCH: limit timeout duration
+  // PATCH: limit timeout duration
   if (muteType === MuteTypes.Timeout) {
     if (muteTime && muteTime > TIMEOUT_MAX) muteTime = TIMEOUT_MAX;
     if (!muteTime) muteTime = TIMEOUT_MAX;
@@ -94,7 +94,9 @@ export async function muteUser(
     }
 
     if (!Array.isArray(restoreRoles)) {
-      if (restoreRoles) rolesToRestore = currentUserRoles;
+      if (restoreRoles) {
+        rolesToRestore = currentUserRoles;
+      }
     } else {
       rolesToRestore = currentUserRoles.filter((x) => (<string[]>restoreRoles).includes(x));
     }
@@ -103,7 +105,9 @@ export async function muteUser(
       const actualMuteRole = pluginData.guild.roles.cache.get(muteRole!);
       if (!actualMuteRole) {
         lock.unlock();
-        logs.logBotAlert({ body: `Cannot mute users, specified mute role Id is invalid` });
+        logs.logBotAlert({
+          body: `Cannot mute users, specified mute role Id is invalid`,
+        });
         throw new RecoverablePluginError(ERRORS.INVALID_MUTE_ROLE_ID);
       }
 
@@ -242,9 +246,7 @@ export async function muteUser(
   const casesPlugin = pluginData.getPlugin(CasesPlugin);
 
   let theCase: Case | null =
-    existingMute && existingMute.case_id
-      ? await pluginData.state.cases.find(existingMute.case_id)
-      : null;
+    existingMute && existingMute.case_id ? await pluginData.state.cases.find(existingMute.case_id) : null;
 
   if (theCase) {
     const noteDetails = [`Mute updated to ${muteTime ? timeUntilUnmuteStr : "indefinite"}`];
