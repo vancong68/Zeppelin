@@ -1,4 +1,5 @@
 import { GuildMember } from "discord.js";
+import { memberHasMutedRole } from "./memberHasMutedRole";
 import { GuildPluginData } from "knub";
 import { MuteTypes } from "../../../data/MuteTypes";
 import { Mute } from "../../../data/entities/Mute";
