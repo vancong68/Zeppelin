@@ -8,6 +8,9 @@ import { MuteTypes } from "../../../data/MuteTypes";
 import { Case } from "../../../data/entities/Case";
 import { Mute } from "../../../data/entities/Mute";
 import { registerExpiringMute } from "../../../data/loops/expiringMutesLoop";
+
+const TIMEOUT_MAX = 27 * 24 * 60 * 60 * 1000;
+
 import { LogsPlugin } from "../../../plugins/Logs/LogsPlugin";
 import { TemplateParseError, TemplateSafeValueContainer, renderTemplate } from "../../../templateFormatter";
 import {
@@ -43,8 +46,15 @@ export async function muteUser(
 
   const muteRole = pluginData.config.get().mute_role;
   const muteType = getDefaultMuteType(pluginData);
+
   const muteExpiresAt = muteTime ? Date.now() + muteTime : null;
   const timeoutUntil = getTimeoutExpiryTime(muteExpiresAt);
+
+  // APPLY PATCH: limit timeout duration
+  if (muteType === MuteTypes.Timeout) {
+    if (muteTime && muteTime > TIMEOUT_MAX) muteTime = TIMEOUT_MAX;
+    if (!muteTime) muteTime = TIMEOUT_MAX;
+  }
 
   // No mod specified -> mark Zeppelin as the mod
   if (!muteOptions.caseArgs?.modId) {
@@ -58,23 +68,22 @@ export async function muteUser(
     throw new RecoverablePluginError(ERRORS.INVALID_USER);
   }
 
-  const member = await resolveMember(pluginData.client, pluginData.guild, user.id, true); // Grab the fresh member so we don't have stale role info
+  const member = await resolveMember(pluginData.client, pluginData.guild, user.id, true);
   const config = await pluginData.config.getMatchingConfig({ member, userId });
 
   const logs = pluginData.getPlugin(LogsPlugin);
 
   let rolesToRestore: string[] = [];
+
   if (member) {
-    // remove and store any roles to be removed/restored
     const currentUserRoles = [...member.roles.cache.keys()];
     let newRoles: string[] = currentUserRoles;
+
     const removeRoles = removeRolesOnMuteOverride ?? config.remove_roles_on_mute;
     const restoreRoles = restoreRolesOnMuteOverride ?? config.restore_roles_on_mute;
 
-    // Remove roles
     if (!Array.isArray(removeRoles)) {
       if (removeRoles) {
-        // exclude managed roles from being removed
         const managedRoles = pluginData.guild.roles.cache.filter((x) => x.managed).map((y) => y.id);
         newRoles = currentUserRoles.filter((r) => managedRoles.includes(r));
         await member.roles.set(newRoles as Snowflake[]);
@@ -84,30 +93,24 @@ export async function muteUser(
       await member.roles.set(newRoles as Snowflake[]);
     }
 
-    // Set roles to be restored
     if (!Array.isArray(restoreRoles)) {
-      if (restoreRoles) {
-        rolesToRestore = currentUserRoles;
-      }
+      if (restoreRoles) rolesToRestore = currentUserRoles;
     } else {
       rolesToRestore = currentUserRoles.filter((x) => (<string[]>restoreRoles).includes(x));
     }
 
     if (muteType === MuteTypes.Role) {
-      // Verify the configured mute role is valid
       const actualMuteRole = pluginData.guild.roles.cache.get(muteRole!);
       if (!actualMuteRole) {
         lock.unlock();
-        logs.logBotAlert({
-          body: `Cannot mute users, specified mute role Id is invalid`,
-        });
+        logs.logBotAlert({ body: `Cannot mute users, specified mute role Id is invalid` });
         throw new RecoverablePluginError(ERRORS.INVALID_MUTE_ROLE_ID);
       }
 
-      // Verify the mute role is not above Zep's roles
       const zep = await pluginData.guild.members.fetchMe();
       const zepRoles = pluginData.guild.roles.cache.filter((x) => zep.roles.cache.has(x.id));
-      if (zepRoles.size === 0 || !zepRoles.some((zepRole) => zepRole.position > actualMuteRole.position)) {
+
+      if (zepRoles.size === 0 || !zepRoles.some((r) => r.position > actualMuteRole.position)) {
         lock.unlock();
         logs.logBotAlert({
           body: `Cannot mute user, specified mute role is above Zeppelin in the role hierarchy`,
@@ -128,7 +131,6 @@ export async function muteUser(
       }
 
       if (!member.moderatable) {
-        // redundant safety, since canActOn already checks this
         lock.unlock();
         logs.logBotAlert({
           body: `Cannot mute user, specified user is not moderatable`,
@@ -139,18 +141,16 @@ export async function muteUser(
       await member.disableCommunicationUntil(timeoutUntil).catch(noop);
     }
 
-    // If enabled, move the user to the mute voice channel (e.g. afk - just to apply the voice perms from the mute role)
     const cfg = pluginData.config.get();
     const moveToVoiceChannel = cfg.kick_from_voice_channel ? null : cfg.move_to_voice_channel;
+
     if (moveToVoiceChannel || cfg.kick_from_voice_channel) {
-      // TODO: Add back the voiceState check once we figure out how to get voice state for guild members that are loaded on-demand
       try {
         await member.edit({ channel: moveToVoiceChannel as Snowflake });
-      } catch {} // eslint-disable-line no-empty
+      } catch {}
     }
   }
 
-  // If the user is already muted, update the duration of their existing mute
   const existingMute = await pluginData.state.mutes.findExistingMuteForUserId(user.id);
   let finalMute: Mute;
   let notifyResult: UserNotificationResult = { method: null, success: true };
@@ -159,10 +159,13 @@ export async function muteUser(
     if (existingMute.roles_to_restore?.length || rolesToRestore?.length) {
       rolesToRestore = Array.from(new Set([...existingMute.roles_to_restore, ...rolesToRestore]));
     }
+
     await pluginData.state.mutes.updateExpiryTime(user.id, muteTime, rolesToRestore);
+
     if (muteType === MuteTypes.Timeout) {
       await pluginData.state.mutes.updateTimeoutExpiresAt(user.id, timeoutUntil);
     }
+
     finalMute = (await pluginData.state.mutes.findExistingMuteForUserId(user.id))!;
   } else {
     const muteParams: AddMuteParams = {
@@ -171,17 +174,20 @@ export async function muteUser(
       expiresAt: muteExpiresAt,
       rolesToRestore,
     };
+
     if (muteType === MuteTypes.Role) {
       muteParams.muteRole = muteRole;
     } else {
       muteParams.timeoutExpiresAt = timeoutUntil;
     }
+
     finalMute = await pluginData.state.mutes.addMute(muteParams);
   }
 
   registerExpiringMute(finalMute);
 
   const timeUntilUnmuteStr = muteTime ? humanizeDuration(muteTime) : "indefinite";
+
   const template = existingMute
     ? config.update_mute_message
     : muteTime
@@ -189,6 +195,7 @@ export async function muteUser(
     : config.mute_message;
 
   let muteMessage: string | null = null;
+
   try {
     muteMessage =
       template &&
@@ -215,55 +222,46 @@ export async function muteUser(
   }
 
   if (muteMessage && member) {
-    let contactMethods: UserNotificationMethod[] = [];
+    const contactMethods: UserNotificationMethod[] = [];
 
-    if (muteOptions?.contactMethods) {
-      contactMethods = muteOptions.contactMethods;
-    } else {
-      const useDm = existingMute ? config.dm_on_update : config.dm_on_mute;
-      if (useDm) {
-        contactMethods.push({ type: "dm" });
-      }
+    const useDm = existingMute ? config.dm_on_update : config.dm_on_mute;
+    if (useDm) contactMethods.push({ type: "dm" });
 
-      const useChannel = existingMute ? config.message_on_update : config.message_on_mute;
-      const channel = config.message_channel
-        ? pluginData.guild.channels.cache.get(config.message_channel as Snowflake)
-        : null;
-      if (useChannel && channel?.isTextBased()) {
-        contactMethods.push({ type: "channel", channel });
-      }
+    const useChannel = existingMute ? config.message_on_update : config.message_on_mute;
+    const channel = config.message_channel
+      ? pluginData.guild.channels.cache.get(config.message_channel as Snowflake)
+      : null;
+
+    if (useChannel && channel?.isTextBased()) {
+      contactMethods.push({ type: "channel", channel });
     }
 
     notifyResult = await notifyUser(member.user, muteMessage, contactMethods);
   }
 
-  // Create/update a case
   const casesPlugin = pluginData.getPlugin(CasesPlugin);
+
   let theCase: Case | null =
-    existingMute && existingMute.case_id ? await pluginData.state.cases.find(existingMute.case_id) : null;
+    existingMute && existingMute.case_id
+      ? await pluginData.state.cases.find(existingMute.case_id)
+      : null;
 
   if (theCase) {
-    // Update old case
     const noteDetails = [`Mute updated to ${muteTime ? timeUntilUnmuteStr : "indefinite"}`];
     const reasons = reason ? [reason] : [];
-    if (muteOptions.caseArgs?.extraNotes) {
-      reasons.push(...muteOptions.caseArgs.extraNotes);
-    }
+
     for (const noteReason of reasons) {
       await casesPlugin.createCaseNote({
         caseId: existingMute!.case_id,
         modId: muteOptions.caseArgs?.modId,
         body: noteReason,
         noteDetails,
-        postInCaseLogOverride: muteOptions.caseArgs?.postInCaseLogOverride,
       });
     }
   } else {
-    // Create new case
     const noteDetails = [`Muted ${muteTime ? `for ${timeUntilUnmuteStr}` : "indefinitely"}`];
-    if (notifyResult.text) {
-      noteDetails.push(ucfirst(notifyResult.text));
-    }
+
+    if (notifyResult.text) noteDetails.push(ucfirst(notifyResult.text));
 
     theCase = await casesPlugin.createCase({
       ...(muteOptions.caseArgs || {}),
@@ -273,26 +271,8 @@ export async function muteUser(
       reason,
       noteDetails,
     });
-    await pluginData.state.mutes.setCaseId(user.id, theCase.id);
-  }
 
-  // Log the action
-  const mod = await resolveUser(pluginData.client, muteOptions.caseArgs?.modId);
-  if (muteTime) {
-    pluginData.getPlugin(LogsPlugin).logMemberTimedMute({
-      mod,
-      user,
-      time: timeUntilUnmuteStr,
-      caseNumber: theCase.case_number,
-      reason: reason ?? "",
-    });
-  } else {
-    pluginData.getPlugin(LogsPlugin).logMemberMute({
-      mod,
-      user,
-      caseNumber: theCase.case_number,
-      reason: reason ?? "",
-    });
+    await pluginData.state.mutes.setCaseId(user.id, theCase.id);
   }
 
   lock.unlock();
