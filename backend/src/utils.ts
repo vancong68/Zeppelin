@@ -444,7 +444,7 @@ export function convertMSToDelayString(ms: number): string {
   return result;
 }
 
-export function successMessage(str: string, emoji = "<:zep_check:1294954898856607785>") {
+export function successMessage(str, emoji = "<:zep_check:906897402101891093>") {
   return emoji ? `${emoji} ${str}` : str;
 }
 
