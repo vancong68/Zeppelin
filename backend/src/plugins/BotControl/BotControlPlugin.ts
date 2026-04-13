@@ -35,20 +35,23 @@ const defaultOptions = {
     update_cmd: null,
   },
 
-overrides: [
-  {
-    any: env.STAFF!.map((e) => {
-      return { user: e };
-    }),
-    config: {
-      can_use: true,
-      can_eligible: true,
-      can_performance: true,
-      can_add_server_from_invite: true,
-      can_list_dashboard_perms: true,
+  overrides: [
+    {
+      any: env.STAFF!.map((e) => {
+        return { user: e };
+      }),
+      config: {
+        can_use: true,
+        can_eligible: true,
+        can_performance: true,
+        can_add_server_from_invite: true,
+        can_list_dashboard_perms: true,
+      },
     },
-  },
-],
+  ],
+}; // ✅ QUAN TRỌNG: thiếu dòng này
+
+export const BotControlPlugin = globalPlugin<BotControlPluginType>()({
 
 export const BotControlPlugin = globalPlugin<BotControlPluginType>()({
   name: "bot_control",
