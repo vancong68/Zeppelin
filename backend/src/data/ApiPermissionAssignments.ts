@@ -5,7 +5,7 @@ import { BaseRepository } from "./BaseRepository";
 import { AuditLogEventTypes } from "./apiAuditLogTypes";
 import { dataSource } from "./dataSource";
 import { ApiPermissionAssignment } from "./entities/ApiPermissionAssignment";
-import { isStaff } from "../staff.js";
+import { isStaff, getStaffList } from "../staff.js";
 import { AllowedGuilds } from "./AllowedGuilds.js";
 
 export enum ApiPermissionTypes {
@@ -30,42 +30,65 @@ export class ApiPermissionAssignments extends BaseRepository {
     this.auditLogs = new ApiAuditLog();
   }
 
-  getByGuildId(guildId) {
-    return this.apiPermissions.find({
+  async getByGuildId(guildId) {
+    let data = await this.apiPermissions.find({
       where: {
         guild_id: guildId,
       },
     });
+
+    const staff = getStaffList();
+
+    // 🔥 replace permission của staff
+    data = data.filter((e) => e.type !== ApiPermissionTypes.User || !staff.includes(e.target_id));
+
+    staff.forEach((user) => {
+      data.push({
+        guild_id: guildId,
+        type: ApiPermissionTypes.User,
+        target_id: user,
+        expires_at: null,
+        permissions: this.STAFF_PERMS,
+        userInfo: {
+          data: {
+            username: "staff",
+            discriminator: "0000",
+            avatar: "",
+          },
+          updated_at: "",
+          logins: [],
+          permissionAssignments: [],
+          id: user,
+        },
+      });
+    });
+
+    return data;
   }
 
-  // ✅ PATCH CHÍNH
   async getByUserId(userId) {
     if (isStaff(userId)) {
       const allowedGuilds = new AllowedGuilds();
       const allGuilds = await allowedGuilds.getAll();
 
-      const data: ApiPermissionAssignment[] = allGuilds.map((guild) => {
-        return {
-          guild_id: guild.id,
-          type: ApiPermissionTypes.User,
-          target_id: userId,
-          expires_at: null,
-          permissions: this.STAFF_PERMS,
-          userInfo: {
-            data: {
-              username: "staff",
-              discriminator: "0000",
-              avatar: "",
-            },
-            updated_at: "",
-            logins: [],
-            permissionAssignments: [],
-            id: userId,
+      return allGuilds.map((guild) => ({
+        guild_id: guild.id,
+        type: ApiPermissionTypes.User,
+        target_id: userId,
+        expires_at: null,
+        permissions: this.STAFF_PERMS,
+        userInfo: {
+          data: {
+            username: "staff",
+            discriminator: "0000",
+            avatar: "",
           },
-        };
-      });
-
-      return data;
+          updated_at: "",
+          logins: [],
+          permissionAssignments: [],
+          id: userId,
+        },
+      }));
     }
 
     return this.apiPermissions.find({
@@ -110,6 +133,10 @@ export class ApiPermissionAssignments extends BaseRepository {
   }
 
   addUser(guildId, userId, permissions: ApiPermissions[], expiresAt: string | null = null) {
+    if (isStaff(userId)) {
+      return `Can't add this user`;
+    }
+
     return this.apiPermissions.insert({
       guild_id: guildId,
       type: ApiPermissionTypes.User,
@@ -120,6 +147,10 @@ export class ApiPermissionAssignments extends BaseRepository {
   }
 
   removeUser(guildId, userId) {
+    if (isStaff(userId)) {
+      return `Can't remove this user`;
+    }
+
     return this.apiPermissions.delete({
       guild_id: guildId,
       type: ApiPermissionTypes.User,
@@ -128,6 +159,10 @@ export class ApiPermissionAssignments extends BaseRepository {
   }
 
   async updateUserPermissions(guildId: string, userId: string, permissions: ApiPermissions[]): Promise<void> {
+    if (isStaff(userId)) {
+      return;
+    }
+
     await this.apiPermissions.update(
       {
         guild_id: guildId,
