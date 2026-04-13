@@ -6,6 +6,7 @@ import { AuditLogEventTypes } from "./apiAuditLogTypes";
 import { dataSource } from "./dataSource";
 import { ApiPermissionAssignment } from "./entities/ApiPermissionAssignment";
 import { isStaff } from "../staff.js";
+import { AllowedGuilds } from "./AllowedGuilds.js";
 
 export enum ApiPermissionTypes {
   User = "USER",
