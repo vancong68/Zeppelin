@@ -49,9 +49,7 @@ const defaultOptions = {
       },
     },
   ],
-}; // ✅ QUAN TRỌNG: thiếu dòng này
-
-export const BotControlPlugin = globalPlugin<BotControlPluginType>()({
+};
 
 export const BotControlPlugin = globalPlugin<BotControlPluginType>()({
   name: "bot_control",
