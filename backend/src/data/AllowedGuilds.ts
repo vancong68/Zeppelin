@@ -31,6 +31,11 @@ export class AllowedGuilds extends BaseRepository {
     });
   }
 
+  // ✅ PATCH THÊM
+  getAll(): Promise<AllowedGuild[]> {
+    return this.allowedGuilds.createQueryBuilder("allowed_guilds").getMany();
+  }
+
   getForApiUser(userId: string) {
     return this.allowedGuilds
       .createQueryBuilder("allowed_guilds")
