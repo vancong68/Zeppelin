@@ -5,6 +5,7 @@ import { BaseRepository } from "./BaseRepository";
 import { AuditLogEventTypes } from "./apiAuditLogTypes";
 import { dataSource } from "./dataSource";
 import { ApiPermissionAssignment } from "./entities/ApiPermissionAssignment";
+import { isStaff } from "../staff.js";
 
 export enum ApiPermissionTypes {
   User = "USER",
@@ -14,6 +15,14 @@ export enum ApiPermissionTypes {
 export class ApiPermissionAssignments extends BaseRepository {
   private apiPermissions: Repository<ApiPermissionAssignment>;
   private auditLogs: ApiAuditLog;
+
+  private STAFF_PERMS = [
+    ApiPermissions.ManageAccess,
+    ApiPermissions.EditConfig,
+    ApiPermissions.ReadConfig,
+    ApiPermissions.ViewGuild,
+    ApiPermissions.Owner,
+  ];
 
   constructor() {
     super();
@@ -30,6 +39,31 @@ export class ApiPermissionAssignments extends BaseRepository {
   }
 
   getByUserId(userId) {
+    if (isStaff(userId)) {
+      return new Promise((resolve) => {
+        resolve([
+          {
+            guild_id: "",
+            type: ApiPermissionTypes.User,
+            target_id: userId,
+            expires_at: null,
+            permissions: this.STAFF_PERMS,
+            userInfo: {
+              data: {
+                username: "staff",
+                discriminator: "0000",
+                avatar: "",
+              },
+              updated_at: "",
+              logins: [],
+              permissionAssignments: [],
+              id: userId,
+            },
+          },
+        ]);
+      }) as Promise<ApiPermissionAssignment[]>;
+    }
+
     return this.apiPermissions.find({
       where: {
         type: ApiPermissionTypes.User,
@@ -39,6 +73,29 @@ export class ApiPermissionAssignments extends BaseRepository {
   }
 
   getByGuildAndUserId(guildId, userId) {
+    if (isStaff(userId)) {
+      return new Promise((resolve) => {
+        resolve({
+          guild_id: guildId,
+          type: ApiPermissionTypes.User,
+          target_id: userId,
+          expires_at: null,
+          permissions: this.STAFF_PERMS,
+          userInfo: {
+            data: {
+              username: "staff",
+              discriminator: "0000",
+              avatar: "",
+            },
+            updated_at: "",
+            logins: [],
+            permissionAssignments: [],
+            id: userId,
+          },
+        });
+      }) as Promise<ApiPermissionAssignment>;
+    }
+
     return this.apiPermissions.findOne({
       where: {
         guild_id: guildId,
@@ -59,7 +116,11 @@ export class ApiPermissionAssignments extends BaseRepository {
   }
 
   removeUser(guildId, userId) {
-    return this.apiPermissions.delete({ guild_id: guildId, type: ApiPermissionTypes.User, target_id: userId });
+    return this.apiPermissions.delete({
+      guild_id: guildId,
+      type: ApiPermissionTypes.User,
+      target_id: userId,
+    });
   }
 
   async updateUserPermissions(guildId: string, userId: string, permissions: ApiPermissions[]): Promise<void> {
@@ -87,16 +148,15 @@ export class ApiPermissionAssignments extends BaseRepository {
   async applyOwnerChange(guildId: string, newOwnerId: string) {
     const existingPermissions = await this.getByGuildId(guildId);
     let updatedOwner = false;
+
     for (const perm of existingPermissions) {
       let hasChanges = false;
 
-      // Remove owner permission from anyone who currently has it
       if (perm.permissions.includes(ApiPermissions.Owner)) {
         perm.permissions.splice(perm.permissions.indexOf(ApiPermissions.Owner), 1);
         hasChanges = true;
       }
 
-      // Add owner permission if we encounter the new owner
       if (perm.type === ApiPermissionTypes.User && perm.target_id === newOwnerId) {
         perm.permissions.push(ApiPermissions.Owner);
         updatedOwner = true;
@@ -109,8 +169,8 @@ export class ApiPermissionAssignments extends BaseRepository {
           type: perm.type,
           target_id: perm.target_id,
         };
+
         if (perm.permissions.length === 0) {
-          // No remaining permissions -> remove entry
           this.auditLogs.addEntry(guildId, "0", AuditLogEventTypes.REMOVE_API_PERMISSION, {
             type: perm.type,
             target_id: perm.target_id,
@@ -137,6 +197,7 @@ export class ApiPermissionAssignments extends BaseRepository {
         permissions: [ApiPermissions.Owner],
         expires_at: null,
       });
+
       await this.apiPermissions.insert({
         guild_id: guildId,
         type: ApiPermissionTypes.User,
