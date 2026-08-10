@@ -13,7 +13,10 @@
     "run:migrate": "cd backend && pnpm run migrate",
     "run:bot": "cd backend && pnpm run start-bot-prod",
     "run:api": "cd backend && pnpm run start-api-prod",
-    "run:dashboard": "cd dashboard && node serve.js"
+    "run:dashboard": "cd dashboard && node serve.js",
+    "start-bot": "cd backend && node --enable-source-maps --stack-trace-limit=30 --trace-warnings dist/index.js",
+    "start-api": "cd backend && node --enable-source-maps --stack-trace-limit=30 dist/api/index.js",
+    "start-dashboard": "cd dashboard && node serve.js"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

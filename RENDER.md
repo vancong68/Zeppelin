@@ -97,7 +97,7 @@ Create three services manually. For each, use **Runtime: Docker** and the same r
 - **Health Check Path:** `/`
 - **Environment:** Link the `zeppelin-shared` env group, set `NODE_ENV=production`
 
-> **Note:** Use `bot`, `api`, or `dashboard` as the Docker Command — not `./entrypoint.sh bot`. The Dockerfile already sets `entrypoint.sh` as the entrypoint; Render's Docker Command is passed as its argument.
+> **Important:** Set the Docker Command to `dashboard`, `api`, or `bot` — not `npm run start-dashboard` or `./entrypoint.sh dashboard`. If your service was created with an old start command, update it under **Settings → Docker Command** in the Render dashboard.
 
 ## Running Database Migrations
 
@@ -126,6 +126,13 @@ pnpm run run:migrate
 - Ensure the API binds to `0.0.0.0` and uses Render's `PORT` (already configured in code)
 - Do not override `PORT` in environment variables
 - Check database connectivity
+
+### `Missing script: "start-dashboard"` (or start-bot / start-api)
+
+Your Render service is using an old Docker Command like `npm run start-dashboard`. Either:
+
+1. **Recommended:** Change **Settings → Docker Command** to `dashboard` (or `api` / `bot` for the other services), then redeploy.
+2. **Or** pull the latest code — root `package.json` now includes `start-dashboard`, `start-api`, and `start-bot` scripts for backward compatibility.
 
 ### Dashboard shows blank page
 
