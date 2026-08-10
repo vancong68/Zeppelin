@@ -56,9 +56,11 @@ import { enableProfiling } from "./utils/easyProfiler.js";
 import { loadYamlSafely } from "./utils/loadYamlSafely.js";
 import http from "http";
 
-// Optional health check server (set BOT_HEALTH_PORT to enable).
-// Useful for platforms that require an HTTP probe, or for local debugging.
-const healthPort = Number(process.env.BOT_HEALTH_PORT) || 0;
+// Health check server.
+// Render's Web Services require the process to bind a port, so in production
+// we bind to Render's injected PORT by default. Set BOT_HEALTH_PORT to
+// override, or set it to 0 to disable.
+const healthPort = Number(process.env.BOT_HEALTH_PORT) || (env.NODE_ENV === "production" ? Number(process.env.PORT) : 0) || 0;
 if (healthPort) {
   const healthServer = http.createServer((_req, res) => {
     res.writeHead(200, { "Content-Type": "application/json" });

@@ -12,6 +12,8 @@ This guide covers deploying Zeppelin as **three separate Render services**: bot,
 
 All three services use the same Docker image. The `dockerCommand` in `render.yaml` selects which process to run. The Dockerfile `ENTRYPOINT` passes that command to `entrypoint.sh`.
 
+> **Note:** The bot runs a small health-check HTTP server. In production it binds to Render's injected `PORT` automatically, so the bot also works if it's set up as a Web Service instead of a Background Worker (Render requires web services to bind a port). Set `BOT_HEALTH_PORT` to override this, or `0` to disable it.
+
 ## Prerequisites
 
 ### External MySQL Database
@@ -124,6 +126,11 @@ pnpm run run:migrate
 - Check that all required environment variables are set in `zeppelin-shared`
 - Verify your MySQL database is accessible from Render's network
 - Check Render logs for connection errors
+- If the bot is a **Web Service**, make sure it's running the latest code: the bot now binds Render's `PORT` automatically for its health check, which is required for web services to deploy (previously deploys timed out with "No open ports detected")
+
+### `query failed ... Duplicate entry ... for key 'messages.PRIMARY'`
+
+Harmless and non-fatal — it happens when the same Discord message is saved twice (e.g. on reconnect). The bot keeps running; no action needed.
 
 ### API returns 502
 
