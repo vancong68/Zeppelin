@@ -54,6 +54,20 @@ import {
 import { DecayingCounter } from "./utils/DecayingCounter.js";
 import { enableProfiling } from "./utils/easyProfiler.js";
 import { loadYamlSafely } from "./utils/loadYamlSafely.js";
+import http from "http";
+
+// Optional health check server (set BOT_HEALTH_PORT to enable).
+// Useful for platforms that require an HTTP probe, or for local debugging.
+const healthPort = Number(process.env.BOT_HEALTH_PORT) || 0;
+if (healthPort) {
+  const healthServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ status: "ok", service: "zeppelin-bot" }));
+  });
+  healthServer.listen(healthPort, "0.0.0.0", () => {
+    console.log(`Bot health check server listening on port ${healthPort}`);
+  });
+}
 
 // Error handling
 let recentPluginErrors = 0;

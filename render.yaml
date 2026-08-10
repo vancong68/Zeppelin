@@ -1,0 +1,74 @@
+# Render.com Blueprint
+# Deploy with: https://render.com/docs/blueprint-spec
+#
+# Creates three separate services:
+#   - zeppelin-bot       (background worker)
+#   - zeppelin-api       (web service)
+#   - zeppelin-dashboard (web service)
+#
+# Prerequisites:
+# - External MySQL database (Render does not offer managed MySQL)
+# - Redis instance (Render Redis or external provider)
+# - Env group "zeppelin-shared" with all required variables (see RENDER.md)
+
+services:
+  # --- Bot (Background Worker) ---
+  - type: worker
+    name: zeppelin-bot
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: bot
+    plan: starter
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - fromGroup: zeppelin-shared
+
+  # --- API (Web Service) ---
+  - type: web
+    name: zeppelin-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: api
+    plan: starter
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - fromGroup: zeppelin-shared
+
+  # --- Dashboard (Web Service) ---
+  - type: web
+    name: zeppelin-dashboard
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: dashboard
+    plan: starter
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - fromGroup: zeppelin-shared
+
+# Shared environment variables
+# Create this group in Render Dashboard > Env Groups > "zeppelin-shared"
+# with the following keys:
+#
+#   KEY                      - 32-char encryption key
+#   CLIENT_ID                - Discord application client ID
+#   CLIENT_SECRET            - Discord application client secret
+#   BOT_TOKEN                - Discord bot token
+#   DASHBOARD_URL            - Full URL of the dashboard (e.g. https://zeppelin-dashboard.onrender.com)
+#   API_URL                  - Full URL of the API (e.g. https://zeppelin-api.onrender.com)
+#   STAFF                    - Comma-separated user IDs for bot staff
+#   DEFAULT_ALLOWED_SERVERS  - Comma-separated server IDs
+#   DB_HOST                  - MySQL host
+#   DB_PORT                  - MySQL port (usually 3306)
+#   DB_USER                  - MySQL username
+#   DB_PASSWORD              - MySQL password
+#   DB_DATABASE              - MySQL database name
+#   REDIS_URL                - Redis connection URL
+#
+# Optional:
+#   FISHFISH_API_KEY         - FishFish API key
+#   API_PATH_PREFIX          - API path prefix (leave empty for Render)

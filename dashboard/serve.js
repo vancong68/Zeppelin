@@ -7,12 +7,10 @@ const fastify = Fastify({
   logger: false,
 });
 
-fastify.addHook("preHandler", (req, reply, done) => {
-  if (req.url === "/env.js") {
-    reply.header("Content-Type", "application/javascript; charset=utf8");
-    reply.send(`window.API_URL = ${JSON.stringify(process.env.API_URL)};`);
-  }
-  done();
+// Inject API_URL at runtime so the dashboard can talk to the separate API service
+fastify.get("/env.js", (req, reply) => {
+  reply.type("application/javascript; charset=utf-8");
+  return reply.send(`window.API_URL = ${JSON.stringify(process.env.API_URL ?? "")};`);
 });
 
 fastify.register(fastifyStatic, {
@@ -25,7 +23,7 @@ fastify.get("*", (req, reply) => {
 });
 
 const port = Number(process.env.PORT) || 3002;
-fastify.listen({ port, host: '0.0.0.0' }, (err, address) => {
+fastify.listen({ port, host: "0.0.0.0" }, (err, address) => {
   if (err) {
     throw err;
   }
