@@ -29,7 +29,8 @@ COPY --chown=node:node . /zeppelin
 # Build all packages (shared -> backend, dashboard)
 RUN pnpm run build
 
-# Prune dev dependencies for production
+# Prune dev dependencies for production (CI=true required for non-interactive prune)
+ENV CI=true
 RUN pnpm prune --prod
 
 ENV NODE_ENV=production
