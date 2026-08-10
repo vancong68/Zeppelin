@@ -15,10 +15,11 @@ fastify.get("/env.js", (req, reply) => {
 
 fastify.register(fastifyStatic, {
   root: path.join(import.meta.dirname, "dist"),
-  wildcard: false,
 });
 
-fastify.get("*", (req, reply) => {
+// SPA fallback: serve index.html for any path that isn't a static asset or /env.js
+// (a `fastify.get("*")` catch-all route conflicts with the /env.js route)
+fastify.setNotFoundHandler((req, reply) => {
   reply.sendFile("index.html");
 });
 

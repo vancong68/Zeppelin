@@ -1,7 +1,7 @@
 FROM node:24-slim
 
-# Enable corepack for pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Enable corepack for pnpm (version is pinned via the `packageManager` field in package.json)
+RUN corepack enable && corepack prepare pnpm@11.21.0 --activate
 
 RUN mkdir /zeppelin
 RUN chown node:node /zeppelin
@@ -29,9 +29,12 @@ COPY --chown=node:node . /zeppelin
 # Build all packages (shared -> backend, dashboard)
 RUN pnpm run build
 
-# Prune dev dependencies for production (CI=true required for non-interactive prune)
-ENV CI=true
-RUN pnpm prune --prod
+# Install only production dependencies for the runtime.
+# NOTE: `pnpm prune --prod` must NOT be used here - it has a workspace bug that
+# removes production dependencies of workspace packages (e.g. fastify from the
+# dashboard), causing "Cannot find package 'fastify'" at startup on Render.
+# A clean --prod reinstall keeps all runtime deps while dropping dev dependencies.
+RUN rm -rf node_modules && pnpm install --prod --frozen-lockfile
 
 ENV NODE_ENV=production
 
