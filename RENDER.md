@@ -27,10 +27,14 @@ Render does not offer managed MySQL. You need an external MySQL 8.0+ instance:
 
 ### Redis
 
+Redis is used only as an optional user cache. The bot and API will run **without** it (caching is then disabled), so a missing or unreachable Redis will not crash a service.
+
 You can use:
 
 - [Render Redis](https://render.com/docs/redis) (managed add-on)
 - An external Redis provider
+
+If you don't set `REDIS_URL`, the services will log a warning and continue. Set it if you want the user cache to work.
 
 ### Discord OAuth Redirect
 
@@ -57,7 +61,7 @@ Create an **Environment Variable Group** called `zeppelin-shared` in the Render 
 | `DB_USER` | ✅ | MySQL username |
 | `DB_PASSWORD` | ✅ | MySQL password |
 | `DB_DATABASE` | ✅ | MySQL database name |
-| `REDIS_URL` | ✅ | Redis connection URL (e.g. `redis://...`) |
+| `REDIS_URL` | ❌ | Redis connection URL (e.g. `redis://...`). Optional — caching is disabled if unset or unreachable |
 | `STAFF` | ❌ | Comma-separated Discord user IDs for bot staff |
 | `DEFAULT_ALLOWED_SERVERS` | ❌ | Comma-separated server IDs |
 | `FISHFISH_API_KEY` | ❌ | FishFish API key |

@@ -1,5 +1,5 @@
 import { Client, User } from "discord.js";
-import { redis } from "../data/redis.js";
+import { redisGet, redisSet } from "../data/redis.js";
 import { incrementDebugCounter } from "../debugCounters.js";
 
 const getOrFetchUserPromises: Map<string, Promise<User | undefined>> = new Map();
@@ -27,9 +27,9 @@ export async function getOrFetchUser(bot: Client, userId: string): Promise<User 
     return cachedUser;
   }
 
-  // 2. Check Redis
+  // 2. Check Redis (optional cache; skips gracefully if Redis is unavailable)
   const redisCacheKey = `cache:user:${userId}`;
-  const userData = await redis.get(redisCacheKey);
+  const userData = await redisGet(redisCacheKey);
   if (userData) {
     if (userData === UNKNOWN_KEY) {
       incrementDebugCounter("getOrFetchUser:redisCache:unknown");
@@ -51,7 +51,7 @@ export async function getOrFetchUser(bot: Client, userId: string): Promise<User 
         })
         .then(async (user) => {
           const cacheValue = user ? JSON.stringify(user.toJSON()) : UNKNOWN_KEY;
-          await redis.set(redisCacheKey, cacheValue, {
+          await redisSet(redisCacheKey, cacheValue, {
             expiration: {
               type: "EX",
               value: generateCacheTime(),
