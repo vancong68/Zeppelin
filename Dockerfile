@@ -1,33 +1,34 @@
-FROM node:24-alpine AS base
+FROM node:20
 
-RUN npm install -g pnpm@11.13.1
+RUN mkdir /zeppelin
+RUN chown node:node /zeppelin
+
+USER node
+
+ARG API_URL
+
+# Install dependencies before copying over any other files
+COPY --chown=node:node package.json package-lock.json /zeppelin
+RUN mkdir /zeppelin/backend
+COPY --chown=node:node backend/package.json /zeppelin/backend
+RUN mkdir /zeppelin/shared
+COPY --chown=node:node shared/package.json /zeppelin/shared
+RUN mkdir /zeppelin/dashboard
+COPY --chown=node:node dashboard/package.json /zeppelin/dashboard
+
+WORKDIR /zeppelin
+RUN npm ci
 
 COPY --chown=node:node . /zeppelin
+
+# Build backend
+WORKDIR /zeppelin/backend
+RUN npm run build
+
+# Build dashboard
+WORKDIR /zeppelin/dashboard
+RUN npm run build
+
+# Prune dev dependencies
 WORKDIR /zeppelin
-
-FROM base AS prod-deps
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
-
-FROM base AS build
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
-RUN pnpm run build
-
-FROM base AS final
-
-ARG COMMIT_HASH
-ARG BUILD_TIME
-
-COPY --from=prod-deps /zeppelin/node_modules /zeppelin/node_modules
-COPY --from=prod-deps /zeppelin/backend/node_modules /zeppelin/backend/node_modules
-#COPY --from=prod-deps /zeppelin/shared/node_modules /zeppelin/shared/node_modules # No prod deps in shared
-COPY --from=prod-deps /zeppelin/dashboard/node_modules /zeppelin/dashboard/node_modules
-
-COPY --from=build /zeppelin/backend/dist /zeppelin/backend/dist
-COPY --from=build /zeppelin/shared/dist /zeppelin/shared/dist
-COPY --from=build /zeppelin/dashboard/dist /zeppelin/dashboard/dist
-
-# Add version info
-RUN echo "${COMMIT_HASH}" > /zeppelin/.commit-hash
-RUN echo "${BUILD_TIME}" > /zeppelin/.build-time
-
-ENTRYPOINT ["/bin/sh", "/zeppelin/entrypoint.sh"]
+RUN npm prune --omit=dev
