@@ -1,67 +1,36 @@
 # Render.com Blueprint
 # Deploy with: https://render.com/docs/blueprint-spec
 #
-# Creates three separate services:
-#   - zeppelin-bot       (background worker)
+# Creates three FREE services:
+#   - zeppelin-bot       (web service - free plan does not allow background workers)
 #   - zeppelin-api       (web service)
 #   - zeppelin-dashboard (web service)
 #
 # Prerequisites:
 # - External MySQL database (Render does not offer managed MySQL)
-# - Redis instance (Render Redis or external provider)
-# - Env group "zeppelin-shared" with all required variables (see RENDER.md)
+# - The "zeppelin-shared" env group (created empty by this Blueprint; values
+#   are added in the Render Dashboard - see RENDER.md)
 
 # Shared environment variables group.
-# This group is created by the Blueprint itself; it will be empty on creation.
-# After the first deploy, go to Render Dashboard > Env Groups > "zeppelin-shared",
-# paste the values, then redeploy (the services will pick them up on restart).
-# Values are intentionally NOT in this file (secrets should not be committed).
+# Created empty by this Blueprint. After the first deploy, go to
+# Render Dashboard > Env Groups > "zeppelin-shared", paste the values,
+# then redeploy the services. Values are intentionally NOT in this file
+# (secrets must not be committed to Git; env groups do not support sync: false).
 envVarGroups:
   - name: zeppelin-shared
-    vars:
-      - key: KEY
-        sync: false
-      - key: CLIENT_ID
-        sync: false
-      - key: CLIENT_SECRET
-        sync: false
-      - key: BOT_TOKEN
-        sync: false
-      - key: DASHBOARD_URL
-        sync: false
-      - key: API_URL
-        sync: false
-      - key: STAFF
-        sync: false
-      - key: DEFAULT_ALLOWED_SERVERS
-        sync: false
-      - key: DB_HOST
-        sync: false
-      - key: DB_PORT
-        sync: false
-      - key: DB_USER
-        sync: false
-      - key: DB_PASSWORD
-        sync: false
-      - key: DB_DATABASE
-        sync: false
-      - key: REDIS_URL
-        sync: false
-      - key: PHISHERMAN_API_KEY
-        sync: false
-      - key: FISHFISH_API_KEY
-        sync: false
-      - key: API_PATH_PREFIX
-        sync: false
 
 services:
-  # --- Bot (Background Worker) ---
-  - type: worker
+  # --- Bot (Web Service, free) ---
+  # Free plan does not support background workers, so the bot runs as a web
+  # service. It binds Render's PORT (health check) and stays awake while the
+  # Discord gateway sends messages over the WebSocket connection.
+  - type: web
     name: zeppelin-bot
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerCommand: bot
     plan: free
+    healthCheckPath: /
     envVars:
       - key: NODE_ENV
         value: production
@@ -92,26 +61,3 @@ services:
       - key: NODE_ENV
         value: production
       - fromGroup: zeppelin-shared
-
-# Shared environment variables
-# Create this group in Render Dashboard > Env Groups > "zeppelin-shared"
-# with the following keys:
-#
-#   KEY                      - 32-char encryption key
-#   CLIENT_ID                - Discord application client ID
-#   CLIENT_SECRET            - Discord application client secret
-#   BOT_TOKEN                - Discord bot token
-#   DASHBOARD_URL            - Full URL of the dashboard (e.g. https://zeppelin-dashboard.onrender.com)
-#   API_URL                  - Full URL of the API (e.g. https://zeppelin-api.onrender.com)
-#   STAFF                    - Comma-separated user IDs for bot staff
-#   DEFAULT_ALLOWED_SERVERS  - Comma-separated server IDs
-#   DB_HOST                  - MySQL host
-#   DB_PORT                  - MySQL port (usually 3306)
-#   DB_USER                  - MySQL username
-#   DB_PASSWORD              - MySQL password
-#   DB_DATABASE              - MySQL database name
-#   REDIS_URL                - Redis connection URL
-#
-# Optional:
-#   FISHFISH_API_KEY         - FishFish API key
-#   API_PATH_PREFIX          - API path prefix (leave empty for Render)
