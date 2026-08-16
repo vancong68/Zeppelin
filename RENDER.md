@@ -48,7 +48,13 @@ https://<your-api-service>.onrender.com/auth/oauth-callback
 
 ## Environment Variables
 
-Create an **Environment Variable Group** called `zeppelin-shared` in the Render dashboard:
+The `render.yaml` blueprint **creates the `zeppelin-shared` env group for you** (with all keys, empty values). After the first (successful) blueprint deploy:
+
+1. Go to **Dashboard → Env Groups → `zeppelin-shared`**
+2. Paste the values for each key (see table below)
+3. Rebuild/deploy the services (or use **Deploy → Manual Deploy → Deploy latest commit** on each service) so they pick up the values
+
+Values are intentionally **not** stored in `render.yaml` so secrets never end up in Git.
 
 | Variable | Required | Description |
 |---|---|---|
@@ -80,9 +86,9 @@ Do **not** set `PORT` manually for web services. Render injects it automatically
 1. Push your code to a GitHub/GitLab repository
 2. Go to [Render Dashboard](https://dashboard.render.com) → **Blueprints** → **New Blueprint Instance**
 3. Connect your repository
-4. Render detects `render.yaml` and creates three services
-5. Create the `zeppelin-shared` env group with all required variables
-6. Deploy
+4. Render detects `render.yaml` and creates three services **plus the `zeppelin-shared` env group** (empty)
+5. Fill in the env group values (see above), then redeploy the services
+6. Done
 
 ### Option B: Manual Setup
 

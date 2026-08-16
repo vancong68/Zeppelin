@@ -11,6 +11,49 @@
 # - Redis instance (Render Redis or external provider)
 # - Env group "zeppelin-shared" with all required variables (see RENDER.md)
 
+# Shared environment variables group.
+# This group is created by the Blueprint itself; it will be empty on creation.
+# After the first deploy, go to Render Dashboard > Env Groups > "zeppelin-shared",
+# paste the values, then redeploy (the services will pick them up on restart).
+# Values are intentionally NOT in this file (secrets should not be committed).
+envVarGroups:
+  - name: zeppelin-shared
+    vars:
+      - key: KEY
+        sync: false
+      - key: CLIENT_ID
+        sync: false
+      - key: CLIENT_SECRET
+        sync: false
+      - key: BOT_TOKEN
+        sync: false
+      - key: DASHBOARD_URL
+        sync: false
+      - key: API_URL
+        sync: false
+      - key: STAFF
+        sync: false
+      - key: DEFAULT_ALLOWED_SERVERS
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_DATABASE
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: PHISHERMAN_API_KEY
+        sync: false
+      - key: FISHFISH_API_KEY
+        sync: false
+      - key: API_PATH_PREFIX
+        sync: false
+
 services:
   # --- Bot (Background Worker) ---
   - type: worker
