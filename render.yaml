@@ -18,7 +18,7 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerCommand: bot
-    plan: starter
+    plan: free
     envVars:
       - key: NODE_ENV
         value: production
@@ -30,7 +30,7 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerCommand: api
-    plan: starter
+    plan: free
     healthCheckPath: /
     envVars:
       - key: NODE_ENV
@@ -43,7 +43,7 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerCommand: dashboard
-    plan: starter
+    plan: free
     healthCheckPath: /
     envVars:
       - key: NODE_ENV

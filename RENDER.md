@@ -73,6 +73,8 @@ Do **not** set `PORT` manually for web services. Render injects it automatically
 
 ## Deployment
 
+> **Free plan:** `render.yaml` sets all three services to `plan: free`. Free **web services** (API and dashboard) spin down after ~15 minutes of inactivity and wake up again on the next request (cold start takes a few seconds). The **bot is a background worker**, which does not spin down on the free plan, so keep it as a worker (the `render.yaml` worker type, or service type "Background Worker" in the dashboard) to avoid disconnects.
+
 ### Option A: Blueprint (Recommended)
 
 1. Push your code to a GitHub/GitLab repository
