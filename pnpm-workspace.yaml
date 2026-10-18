@@ -5,9 +5,11 @@ packages:
   - 'backend'
   - 'shared'
   - 'dashboard'
+  - 'config-checker'
 
 allowBuilds:
   bufferutil: true
+  esbuild: true
   utf-8-validate: true
 
 minimumReleaseAge: 20160 # in minutes (2 weeks)

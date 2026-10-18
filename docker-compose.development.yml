@@ -2,6 +2,7 @@ name: zeppelin-dev
 
 volumes:
   home: {}
+  untrusted-home: {}
   mysql-data: {}
   redis-data: {}
 
@@ -22,12 +23,9 @@ services:
       MYSQL_USER: zeppelin
       MYSQL_PASSWORD: ${DEVELOPMENT_MYSQL_PASSWORD?:Missing DEVELOPMENT_MYSQL_PASSWORD}
     ports:
-      - ${DEVELOPMENT_MYSQL_PORT:?Missing DEVELOPMENT_MYSQL_PORT}:3306
-    # If you're upgrading from an older version, you can load your old database by switching the volumes below.
-    # Then, take a database dump from the old database, switch the volumes back, and load the dump into the new database.
+      - "127.0.0.1:${DEVELOPMENT_MYSQL_PORT:?Missing DEVELOPMENT_MYSQL_PORT}:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-      # - ./docker/production/data/mysql:/var/lib/mysql
     command: --authentication-policy=mysql_native_password
 
   redis:
@@ -36,15 +34,29 @@ services:
       - redis-data:/data
 
   devenv:
-    build:
+    build: &devenv-build
       context: ./docker/development/devenv
-      args:
-        DEVELOPMENT_SSH_PASSWORD: ${DEVELOPMENT_SSH_PASSWORD:?Missing DEVELOPMENT_SSH_PASSWORD}
-        DEVELOPMENT_UID: ${DEVELOPMENT_UID:-1000}
+    init: true
+    environment:
+      DEVELOPMENT_SSH_PASSWORD: ${DEVELOPMENT_SSH_PASSWORD:?Missing DEVELOPMENT_SSH_PASSWORD}
     ports:
-      - "${DEVELOPMENT_SSH_PORT:?Missing DEVELOPMENT_SSH_PORT}:22"
+      - "127.0.0.1:${DEVELOPMENT_SSH_PORT:?Missing DEVELOPMENT_SSH_PORT}:22"
     volumes:
-      - home:/home/ubuntu
+      - home:/home/dev
+      - ./:/workspace/zeppelin
+    healthcheck:
+      test: ["CMD", "test", "-e", "/run/uid-ready"]
+      interval: 30s
+      start_period: 30s
+      start_interval: 200ms
+
+  # Utility container to run untrusted applications
+  # without sharing the main devenv's container and home dir
+  untrusted:
+    profiles: [manual]
+    build: *devenv-build
+    volumes:
+      - untrusted-home:/home/dev
       - ./:/workspace/zeppelin
 
   cftunnel:
@@ -52,4 +64,4 @@ services:
     image: cloudflare/cloudflared:latest
     command: tunnel run
     environment:
-      TUNNEL_TOKEN: ${CF_TUNNEL_TOKEN}
+      TUNNEL_TOKEN: ${CF_TUNNEL_TOKEN:-}

@@ -5,7 +5,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "target": "esnext",
-    "lib": ["es2023"],
+    "lib": ["esnext"],
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "sourceMap": true,

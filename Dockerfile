@@ -20,6 +20,9 @@ COPY --chown=node:node shared/package.json /zeppelin/shared/
 RUN mkdir /zeppelin/dashboard
 COPY --chown=node:node dashboard/package.json /zeppelin/dashboard/
 
+RUN mkdir /zeppelin/config-checker
+COPY --chown=node:node config-checker/package.json /zeppelin/config-checker/
+
 WORKDIR /zeppelin
 RUN pnpm install --frozen-lockfile
 

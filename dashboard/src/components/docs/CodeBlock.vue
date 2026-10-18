@@ -3,7 +3,7 @@
 </template>
 
 <script>
-  export default {
-    props: ["codeLang", "trim"],
-  };
+export default {
+  props: ["codeLang", "trim"],
+};
 </script>

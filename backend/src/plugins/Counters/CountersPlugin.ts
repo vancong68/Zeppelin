@@ -121,7 +121,7 @@ export const CountersPlugin = guildPlugin<CountersPluginType>()({
     }
 
     // Mark old/unused counters to be deleted later
-    await state.counters.markUnusedCountersToBeDeleted([...Object.values(state.counterIds)]);
+    await state.counters.markUnusedCountersToBeDeleted(Object.values(state.counterIds));
 
     // Mark old/unused triggers to be deleted later
     await state.counters.markUnusedTriggersToBeDeleted(activeTriggerIds);

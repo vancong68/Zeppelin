@@ -39,16 +39,16 @@ const REGEX_FAIL_TO_COOLDOWN_COUNT = 5; // If a regex times out this many times.
 const REGEX_FAIL_DECAY_TIME = 2 * MINUTES; // ...in this interval...
 const REGEX_FAIL_COOLDOWN = 2 * MINUTES + 30 * SECONDS; // ...it goes on cooldown for this long
 
-export interface RegExpRunner {
-  on(event: "timeout", listener: (regexSource: string, timeoutMs: number) => void);
-  on(event: "repeatedTimeout", listener: (regexSource: string, timeoutMs: number, failTimes: number) => void);
+interface RegExpRunnerEvents {
+  timeout: [regexSource: string, timeoutMs: number];
+  repeatedTimeout: [regexSource: string, timeoutMs: number, failTimes: number];
 }
 
 /**
  * Leverages RegExpWorker to run regular expressions in worker threads with a timeout.
  * Repeatedly failing regexes are put on a cooldown where requests to execute them are ignored.
  */
-export class RegExpRunner extends EventEmitter {
+export class RegExpRunner extends EventEmitter<RegExpRunnerEvents> {
   private _worker: RegExpWorker | null;
   private readonly _failedTimesInterval: Timeout;
 

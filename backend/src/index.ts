@@ -60,7 +60,8 @@ import http from "http";
 // Render's Web Services require the process to bind a port, so in production
 // we bind to Render's injected PORT by default. Set BOT_HEALTH_PORT to
 // override, or set it to 0 to disable.
-const healthPort = Number(process.env.BOT_HEALTH_PORT) || (env.NODE_ENV === "production" ? Number(process.env.PORT) : 0) || 0;
+const healthPort =
+  Number(process.env.BOT_HEALTH_PORT) || (env.NODE_ENV === "production" ? Number(process.env.PORT) : 0) || 0;
 if (healthPort) {
   const healthServer = http.createServer((_req, res) => {
     res.writeHead(200, { "Content-Type": "application/json" });
@@ -376,7 +377,7 @@ connect().then(async () => {
 
             return loaded;
           } catch (err) {
-            logger.error(`Error while loading config "${key}"`);
+            logger.error(`Error while loading config "${key}": ${err}`);
             return {};
           }
         }

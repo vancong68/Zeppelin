@@ -4,7 +4,7 @@
 
     <nav class="flex items-stretch flex-wrap pl-4 pr-2 py-1 border border-gray-700 rounded bg-gray-800 shadow-xl mb-8">
       <div class="flex-full md:flex-initial flex items-center">
-        <img class="w-10 mr-5" src="/img/logo.png" alt="" aria-hidden="true">
+        <img class="w-10 mr-5" src="/img/logo.png" alt="" aria-hidden="true" />
 
         <router-link to="/dashboard">
           <h1 class="font-semibold">Zeppelin Dashboard</h1>
@@ -18,10 +18,7 @@
         </ul>
 
         <div class="flex-1 flex items-center md:justify-end">
-          <router-link
-            to="/docs"
-            role="menuitem"
-            class="py-1 px-2 rounded hover:bg-gray-700">
+          <router-link to="/docs" role="menuitem" class="py-1 px-2 rounded hover:bg-gray-700">
             Go to documentation
           </router-link>
         </div>
@@ -35,29 +32,29 @@
 </template>
 
 <style scoped>
-  .dashboard-nav a {
-    &:hover {
-      @apply underline;
-    }
-  }
-
-  .dashboard-nav .router-link-exact-active {
+.dashboard-nav a {
+  &:hover {
     @apply underline;
   }
+}
+
+.dashboard-nav .router-link-exact-active {
+  @apply underline;
+}
 </style>
 
 <script>
-  import Title from "../Title.vue";
+import Title from "../Title.vue";
 
-  export default {
-    components: {
-      Title,
+export default {
+  components: {
+    Title,
+  },
+  methods: {
+    async logout() {
+      await this.$store.dispatch("auth/logout");
+      window.location.pathname = "/";
     },
-    methods: {
-      async logout() {
-        await this.$store.dispatch("auth/logout");
-        window.location.pathname = '/';
-      }
-    },
-  };
+  },
+};
 </script>

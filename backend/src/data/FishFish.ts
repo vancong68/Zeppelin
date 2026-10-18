@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { env } from "../env.js";
-import { HOURS, MINUTES, SECONDS } from "../utils.js";
+import { HOURS, MINUTES } from "../utils.js";
 
 const API_ROOT = "https://api.fishfish.gg/v1";
 
@@ -20,8 +20,8 @@ const domains = new Map<string, FishFishDomain>();
 
 let sessionTokenPromise: Promise<string> | null = null;
 
-const WS_RECONNECT_DELAY = 30 * SECONDS;
-let updatesWs: WebSocket | null = null;
+// const WS_RECONNECT_DELAY = 30 * SECONDS;
+// let updatesWs: WebSocket | null = null;
 
 export class FishFishError extends Error {}
 

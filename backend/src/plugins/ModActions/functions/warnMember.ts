@@ -35,7 +35,9 @@ export async function warnMember(
           guildName: pluginData.guild.name,
           reason: reasonWithAttachments,
           moderator: warnOptions.caseArgs?.modId
-            ? userToTemplateSafeUser(await resolveUser(pluginData.client, warnOptions.caseArgs.modId, "ModActions:warnMember"))
+            ? userToTemplateSafeUser(
+                await resolveUser(pluginData.client, warnOptions.caseArgs.modId, "ModActions:warnMember"),
+              )
             : null,
         }),
       );
@@ -82,7 +84,7 @@ export async function warnMember(
 
   const casesPlugin = pluginData.getPlugin(CasesPlugin);
   const createdCase = await casesPlugin.createCase({
-    ...(warnOptions.caseArgs || {}),
+    ...warnOptions.caseArgs,
     userId: member.id,
     modId,
     type: CaseTypes.Warn,

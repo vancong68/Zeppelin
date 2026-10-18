@@ -7,17 +7,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-
-    - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+    - uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2
       with:
-        node-version: 24
-
-    - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061
-      with:
-        version: 10.19.0
-        run_install: true
-
+        cache: true
     - run: |
         pnpm run lint
-        pnpm run codestyle-check
+        pnpm run format:check

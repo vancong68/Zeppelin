@@ -10,10 +10,6 @@ export function Levels({ levels, setLevels }) {
     setLevels((arr) => [...arr, ["", LEVEL_MODERATOR]]);
   }
 
-  function removeLevel(index) {
-    setLevels((arr) => [...arr].splice(index, 1));
-  }
-
   function updateLevelId(index, id) {
     const validId = id.replace(/[^0-9]/g, "");
     setLevels((arr) => {

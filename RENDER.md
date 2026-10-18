@@ -4,11 +4,11 @@ This guide covers deploying Zeppelin as **three separate Render services**: bot,
 
 ## Architecture
 
-| Service | Render type | Command | Description |
-|---|---|---|---|
-| `zeppelin-bot` | Background Worker | `bot` | Discord bot process |
-| `zeppelin-api` | Web Service | `api` | REST API (binds to Render's `PORT`) |
-| `zeppelin-dashboard` | Web Service | `dashboard` | Static dashboard (binds to Render's `PORT`) |
+| Service              | Render type       | Command     | Description                                 |
+| -------------------- | ----------------- | ----------- | ------------------------------------------- |
+| `zeppelin-bot`       | Background Worker | `bot`       | Discord bot process                         |
+| `zeppelin-api`       | Web Service       | `api`       | REST API (binds to Render's `PORT`)         |
+| `zeppelin-dashboard` | Web Service       | `dashboard` | Static dashboard (binds to Render's `PORT`) |
 
 All three services use the same Docker image. The `dockerCommand` in `render.yaml` selects which process to run. The Dockerfile `ENTRYPOINT` passes that command to `entrypoint.sh`.
 
@@ -56,24 +56,24 @@ The `render.yaml` blueprint **creates the `zeppelin-shared` env group for you** 
 
 Values are intentionally **not** stored in `render.yaml` so secrets never end up in Git.
 
-| Variable | Required | Description |
-|---|---|---|
-| `KEY` | ✅ | 32-character encryption key |
-| `CLIENT_ID` | ✅ | Discord application client ID |
-| `CLIENT_SECRET` | ✅ | Discord application client secret (32 chars) |
-| `BOT_TOKEN` | ✅ | Discord bot token |
-| `DASHBOARD_URL` | ✅ | Full URL of your dashboard (e.g. `https://zeppelin-dashboard.onrender.com`) |
-| `API_URL` | ✅ | Full URL of your API (e.g. `https://zeppelin-api.onrender.com`) |
-| `DB_HOST` | ✅ | MySQL hostname |
-| `DB_PORT` | ✅ | MySQL port (usually `3306`) |
-| `DB_USER` | ✅ | MySQL username |
-| `DB_PASSWORD` | ✅ | MySQL password |
-| `DB_DATABASE` | ✅ | MySQL database name |
-| `REDIS_URL` | ❌ | Redis connection URL (e.g. `redis://...`). Optional — caching is disabled if unset or unreachable |
-| `STAFF` | ❌ | Comma-separated Discord user IDs for bot staff |
-| `DEFAULT_ALLOWED_SERVERS` | ❌ | Comma-separated server IDs |
-| `FISHFISH_API_KEY` | ❌ | FishFish API key |
-| `API_PATH_PREFIX` | ❌ | Leave **empty** on Render (API is on its own domain) |
+| Variable                  | Required | Description                                                                                       |
+| ------------------------- | -------- | ------------------------------------------------------------------------------------------------- |
+| `KEY`                     | ✅       | 32-character encryption key                                                                       |
+| `CLIENT_ID`               | ✅       | Discord application client ID                                                                     |
+| `CLIENT_SECRET`           | ✅       | Discord application client secret (32 chars)                                                      |
+| `BOT_TOKEN`               | ✅       | Discord bot token                                                                                 |
+| `DASHBOARD_URL`           | ✅       | Full URL of your dashboard (e.g. `https://zeppelin-dashboard.onrender.com`)                       |
+| `API_URL`                 | ✅       | Full URL of your API (e.g. `https://zeppelin-api.onrender.com`)                                   |
+| `DB_HOST`                 | ✅       | MySQL hostname                                                                                    |
+| `DB_PORT`                 | ✅       | MySQL port (usually `3306`)                                                                       |
+| `DB_USER`                 | ✅       | MySQL username                                                                                    |
+| `DB_PASSWORD`             | ✅       | MySQL password                                                                                    |
+| `DB_DATABASE`             | ✅       | MySQL database name                                                                               |
+| `REDIS_URL`               | ❌       | Redis connection URL (e.g. `redis://...`). Optional — caching is disabled if unset or unreachable |
+| `STAFF`                   | ❌       | Comma-separated Discord user IDs for bot staff                                                    |
+| `DEFAULT_ALLOWED_SERVERS` | ❌       | Comma-separated server IDs                                                                        |
+| `FISHFISH_API_KEY`        | ❌       | FishFish API key                                                                                  |
+| `API_PATH_PREFIX`         | ❌       | Leave **empty** on Render (API is on its own domain)                                              |
 
 Do **not** set `PORT` manually for web services. Render injects it automatically and both the API and dashboard bind to `0.0.0.0:$PORT`.
 

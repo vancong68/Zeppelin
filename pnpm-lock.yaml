@@ -25,6 +25,9 @@ importers:
       '@types/node':
         specifier: ^24.13.3
         version: 24.13.3
+      node:
+        specifier: runtime:^24.0.0
+        version: runtime:24.19.0
       oxfmt:
         specifier: ^0.59.0
         version: 0.59.0
@@ -207,6 +210,22 @@ importers:
         specifier: catalog:ts7
         version: 7.0.2
 
+  config-checker:
+    dependencies:
+      monaco-editor:
+        specifier: ^0.52.2
+        version: 0.52.2
+      monaco-yaml:
+        specifier: ^5.4.0
+        version: 5.5.1(monaco-editor@0.52.2)
+    devDependencies:
+      typescript:
+        specifier: catalog:ts7
+        version: 7.0.2
+      vite:
+        specifier: ^8.1.5
+        version: 8.1.5(@types/node@24.13.3)(jiti@2.7.0)(yaml@2.9.0)
+
   dashboard:
     dependencies:
       '@fastify/static':
@@ -221,10 +240,10 @@ importers:
     devDependencies:
       '@tailwindcss/vite':
         specifier: ^4.1.8
-        version: 4.3.3(vite@8.1.5(@types/node@24.13.3)(jiti@2.7.0))
+        version: 4.3.3(vite@8.1.5(@types/node@24.13.3)(jiti@2.7.0)(yaml@2.9.0))
       '@vitejs/plugin-vue':
         specifier: ^5.2.4
-        version: 5.2.4(vite@8.1.5(@types/node@24.13.3)(jiti@2.7.0))(vue@3.5.40(typescript@6.0.3))
+        version: 5.2.4(vite@8.1.5(@types/node@24.13.3)(jiti@2.7.0)(yaml@2.9.0))(vue@3.5.40(typescript@6.0.3))
       '@vue/tsconfig':
         specifier: ^0.7.0
         version: 0.7.0(typescript@6.0.3)(vue@3.5.40(typescript@6.0.3))
@@ -260,7 +279,7 @@ importers:
         version: 6.0.3
       vite:
         specifier: ^8.1.5
-        version: 8.1.5(@types/node@24.13.3)(jiti@2.7.0)
+        version: 8.1.5(@types/node@24.13.3)(jiti@2.7.0)(yaml@2.9.0)
       vue:
         specifier: ^3.5.13
         version: 3.5.40(typescript@6.0.3)
@@ -1151,6 +1170,14 @@ packages:
 
   '@volar/typescript@2.4.28':
     resolution: {integrity: sha512-Ja6yvWrbis2QtN4ClAKreeUZPVYMARDYZl9LMEv1iQ1QdepB6wn0jTRxA9MftYmYa4DQ4k/DaSZpFPUfxl8giw==}
+    peerDependencies:
+      typescript: '*'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
+  '@vscode/l10n@0.0.18':
+    resolution: {integrity: sha512-KYSIHVmslkaCDyw013pphY+d7x1qV8IZupYfeIfzNA+nsaWHbn5uPuQRvdRFsa9zFzGeudPuoGoZ1Op4jrJXIQ==}
 
   '@vue/compiler-core@3.5.40':
     resolution: {integrity: sha512-39E8IgOhTbVDnoJFMKc2DvYnypcZwUqgUhQkccva/0m6FUwtIKSGV7n1hpVmYcFaoRAwf9pBcwnKlCEsN63ZEQ==}
@@ -1952,6 +1979,9 @@ packages:
     resolution: {integrity: sha512-g1MWMLBiz8FKi1e4w0UyVL3w+iJceWAFBAaBnnGKOpNa5f8TLktkbre1+s6oICydWAm+HRUGTmI+//xv2hvXYA==}
     hasBin: true
 
+  jsonc-parser@3.3.1:
+    resolution: {integrity: sha512-HUgH65KyejrUFPvHFPbqOY0rsFip3Bo5wb4ngvdi1EpCYWUQDC5V+Y7mZws+DLkr4M//zQJoanu1SP+87Dv1oQ==}
+
   jsonfile@4.0.0:
     resolution: {integrity: sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==}
 
@@ -2158,6 +2188,28 @@ packages:
   moment@2.30.1:
     resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}
 
+  monaco-editor@0.52.2:
+    resolution: {integrity: sha512-GEQWEZmfkOGLdd3XK8ryrfWz3AIP8YymVXiPHEdewrUq7mh0qrKrfHLNCXcbB6sTnMLnOZ3ztSiKcciFUkIJwQ==}
+
+  monaco-languageserver-types@0.4.1:
+    resolution: {integrity: sha512-uLiYM6K6jPqAa1ni9lRBoj8ZJAErOcegBrfEpurIUUO8cBhlhrGYjWbjhl4OPcxUNoj1JvqSETjwCTyhGgwymQ==}
+
+  monaco-marker-data-provider@1.2.5:
+    resolution: {integrity: sha512-5ZdcYukhPwgYMCvlZ9H5uWs5jc23BQ8fFF5AhSIdrz5mvYLsqGZ58ZLxTv8rCX6+AxdJ8+vxg1HVSk+F2bLosg==}
+
+  monaco-types@0.1.2:
+    resolution: {integrity: sha512-8LwfrlWXsedHwAL41xhXyqzPibS8IqPuIXr9NdORhonS495c2/wky+sI1PRLvMCuiI0nqC2NH1six9hdiRY4Xg==}
+
+  monaco-worker-manager@2.0.1:
+    resolution: {integrity: sha512-kdPL0yvg5qjhKPNVjJoym331PY/5JC11aPJXtCZNwWRvBr6jhkIamvYAyiY5P1AWFmNOy0aRDRoMdZfa71h8kg==}
+    peerDependencies:
+      monaco-editor: '>=0.30.0'
+
+  monaco-yaml@5.5.1:
+    resolution: {integrity: sha512-vLR1EoV7Au0tkuA9T6ZJr2q7CooRP69AvlqzWh9Gui6amuijdTsfCAQHtCFobRMwkhbuly6J1Q16NziTTiWtWQ==}
+    peerDependencies:
+      monaco-editor: '>=0.36'
+
   ms@2.0.0:
     resolution: {integrity: sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==}
 
@@ -2192,6 +2244,127 @@ packages:
 
   node-gyp-build@4.8.4:
     resolution: {integrity: sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ==}
+    hasBin: true
+
+  node@runtime:24.19.0:
+    resolution:
+      type: variations
+      variants:
+        - resolution:
+            archive: tarball
+            bin:
+              node: bin/node
+            integrity: sha256-9ONcExZd5ogMqiVYwKpIyoitpH/iI0vtB9Ztu4CkfI0=
+            type: binary
+            url: https://nodejs.org/download/release/v24.19.0/node-v24.19.0-aix-ppc64.tar.gz
+          targets:
+            - cpu: ppc64
+              os: aix
+        - resolution:
+            archive: tarball
+            bin:
+              node: bin/node
+            integrity: sha256-gpS3qpsDmXSBwGur8eiycMhZNY8n2lehFQmv5TesOB0=
+            type: binary
+            url: https://nodejs.org/download/release/v24.19.0/node-v24.19.0-darwin-arm64.tar.gz
+          targets:
+            - cpu: arm64
+              os: darwin
+        - resolution:
+            archive: tarball
+            bin:
+              node: bin/node
+            integrity: sha256-0bXpmdsVjGL+j3JnpEdrA12L2TsaYFusJKPw3RZuMxY=
+            type: binary
+            url: https://nodejs.org/download/release/v24.19.0/node-v24.19.0-darwin-x64.tar.gz
+          targets:
+            - cpu: x64
+              os: darwin
+        - resolution:
+            archive: tarball
+            bin:
+              node: bin/node
+            integrity: sha256-0oyKW/CoCPDtQ0odzoxUrpjwNxwL2GrFirxhP3PmZD8=
+            type: binary
+            url: https://nodejs.org/download/release/v24.19.0/node-v24.19.0-linux-arm64.tar.gz
+          targets:
+            - cpu: arm64
+              os: linux
+        - resolution:
+            archive: tarball
+            bin:
+              node: bin/node
+            integrity: sha256-sxqMTLxYn5FS8y/bQxhGl1nhZViltdk7f/L7KHsBPbI=
+            type: binary
+            url: https://nodejs.org/download/release/v24.19.0/node-v24.19.0-linux-ppc64le.tar.gz
+          targets:
+            - cpu: ppc64le
+              os: linux
+        - resolution:
+            archive: tarball
+            bin:
+              node: bin/node
+            integrity: sha256-s6tqQ5KCjbn9TtloOY1VGIKSvMFYGVQtU74LEQDjMvw=
+            type: binary
+            url: https://nodejs.org/download/release/v24.19.0/node-v24.19.0-linux-s390x.tar.gz
+          targets:
+            - cpu: s390x
+              os: linux
+        - resolution:
+            archive: tarball
+            bin:
+              node: bin/node
+            integrity: sha256-9iXZfNcH30/5YlSRb7xf8BTwnAnv/loeDKj21BqHidQ=
+            type: binary
+            url: https://nodejs.org/download/release/v24.19.0/node-v24.19.0-linux-x64.tar.gz
+          targets:
+            - cpu: x64
+              os: linux
+        - resolution:
+            archive: zip
+            bin:
+              node: node.exe
+            integrity: sha256-hQL0pQtFjUzDjtjyABVWws0jnUZJIPdAF5Jsyx4cFX8=
+            prefix: node-v24.19.0-win-arm64
+            type: binary
+            url: https://nodejs.org/download/release/v24.19.0/node-v24.19.0-win-arm64.zip
+          targets:
+            - cpu: arm64
+              os: win32
+        - resolution:
+            archive: zip
+            bin:
+              node: node.exe
+            integrity: sha256-V/cas2UueX2ErN3HnIHMn/HG3bKhl0zbg/AP7pv/THM=
+            prefix: node-v24.19.0-win-x64
+            type: binary
+            url: https://nodejs.org/download/release/v24.19.0/node-v24.19.0-win-x64.zip
+          targets:
+            - cpu: x64
+              os: win32
+        - resolution:
+            archive: tarball
+            bin:
+              node: bin/node
+            integrity: sha256-IIJOTTWUj65bM33M70eBOwTYmVMS9Z33OG8iVtn5q34=
+            type: binary
+            url: https://unofficial-builds.nodejs.org/download/release/v24.19.0/node-v24.19.0-linux-arm64-musl.tar.gz
+          targets:
+            - cpu: arm64
+              os: linux
+              libc: musl
+        - resolution:
+            archive: tarball
+            bin:
+              node: bin/node
+            integrity: sha256-xgIjeG3xSl0j4iDruOYDGPUyJkCmL5Dm2eVNOhjaUy4=
+            type: binary
+            url: https://unofficial-builds.nodejs.org/download/release/v24.19.0/node-v24.19.0-linux-x64-musl.tar.gz
+          targets:
+            - cpu: x64
+              os: linux
+              libc: musl
+    version: 24.19.0
     hasBin: true
 
   nofilter@3.1.0:
@@ -2396,6 +2569,11 @@ packages:
     resolution: {integrity: sha512-Mz8SaolMd8nB+G13WkORcxQKHZ/NE4xXevtkJHVuG+guo9/wYKlIMTKAqGdEmYOXR2ijPjTYNHssizdaVSUNdQ==}
     engines: {node: ^10 || ^12 || >=14}
 
+  prettier@3.9.6:
+    resolution: {integrity: sha512-OpN0zzVdiaiAhxpuuj5efpIS4sY9j7bY6uR5mnj5yPzGkdkjNKSJeUThPb60Jw29QuAZgA4o+/iB49kFiaBX6g==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   pretty-ms@8.0.0:
     resolution: {integrity: sha512-ASJqOugUF1bbzI35STMBUpZqdfYKlJugy6JBziGi2EE+AL5JPJGSzvpeVXojxrr0ViUYoToUjb5kjSEGf7Y83Q==}
     engines: {node: '>=14.16'}
@@ -2409,6 +2587,9 @@ packages:
   proxy-addr@2.0.7:
     resolution: {integrity: sha512-llQsMLSUDUPT44jdrU/O37qlnifitDP+ZwrmmZcoSKyLKvtZxpyV0n2/bD/N4tBAAZ/gJEdZU7KMraoK1+XYAg==}
     engines: {node: '>= 0.10'}
+
+  proxy-disposable@1.0.0:
+    resolution: {integrity: sha512-Y673BKpFqk8XkYuoK9DGZ1RIzldz5SkzxTKc/+DkpaMdrDEbEalWlO/uMRMdJsXvdbTybJI26XDwN0KJpZDN4w==}
 
   qs@6.15.3:
     resolution: {integrity: sha512-O9gl3zCl5h5blw1KGUzQKhA5oUXSl8rwUIM5o0S3nCXMliSvy5Dzx7/DJcI+SwgICv+IneSZwhBh1oSyEHA71A==}
@@ -2916,6 +3097,19 @@ packages:
       yaml:
         optional: true
 
+  vscode-jsonrpc@9.0.1:
+    resolution: {integrity: sha512-rfuA6T75H6m5EkbhtEPzre9pT0HPcDI2MMy4+nPFIBks5J8JBAUHD4tRYSgaBOijIEC7SRkC1kKyXTLqbmh9jw==}
+    engines: {node: '>=14.0.0'}
+
+  vscode-languageserver-protocol@3.18.2:
+    resolution: {integrity: sha512-XRyDbT0Pp3sSNti3JmxVEUMySWCSi1hhM+/KUlCy1hV1zmrqpM1OwO12EAki8blhmLuIMpaJrYbo0OzGVfK2Qg==}
+
+  vscode-languageserver-textdocument@1.0.12:
+    resolution: {integrity: sha512-cxWNPesCnQCcMPeenjKKsOCKQZ/L6Tv19DTRIGuLWe32lyzWhihGVJ/rcckZXJxfdKCFvRLS3fpBIsV/ZGX4zA==}
+
+  vscode-languageserver-types@3.18.0:
+    resolution: {integrity: sha512-8TsGPNMIMiiBdkORgRSvLjuiEIiAFtO+KssmYWxQ+uSVvlf7RjK8YKCOjPzZ+YA04jXEV7+7LvkSmHkhpNS99g==}
+
   vscode-uri@3.1.0:
     resolution: {integrity: sha512-/BpdSx+yCQGnCvecbyXdxHDkuk55/G3xwnC0GqY4gmQ3j+A+g8kzzgB4Nk/SINjqn6+waqw3EgbVF2QKExkRxQ==}
 
@@ -2997,6 +3191,11 @@ packages:
   y18n@5.0.8:
     resolution: {integrity: sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==}
     engines: {node: '>=10'}
+
+  yaml@2.9.0:
+    resolution: {integrity: sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA==}
+    engines: {node: '>= 14.6'}
+    hasBin: true
 
   yargs-parser@21.1.1:
     resolution: {integrity: sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==}
@@ -3453,12 +3652,12 @@ snapshots:
       '@tailwindcss/oxide-win32-arm64-msvc': 4.3.3
       '@tailwindcss/oxide-win32-x64-msvc': 4.3.3
 
-  '@tailwindcss/vite@4.3.3(vite@8.1.5(@types/node@24.13.3)(jiti@2.7.0))':
+  '@tailwindcss/vite@4.3.3(vite@8.1.5(@types/node@24.13.3)(jiti@2.7.0)(yaml@2.9.0))':
     dependencies:
       '@tailwindcss/node': 4.3.3
       '@tailwindcss/oxide': 4.3.3
       tailwindcss: 4.3.3
-      vite: 8.1.5(@types/node@24.13.3)(jiti@2.7.0)
+      vite: 8.1.5(@types/node@24.13.3)(jiti@2.7.0)(yaml@2.9.0)
 
   '@tybys/wasm-util@0.10.3':
     dependencies:
@@ -3624,9 +3823,9 @@ snapshots:
   '@typescript/typescript-win32-x64@7.0.2':
     optional: true
 
-  '@vitejs/plugin-vue@5.2.4(vite@8.1.5(@types/node@24.13.3)(jiti@2.7.0))(vue@3.5.40(typescript@6.0.3))':
+  '@vitejs/plugin-vue@5.2.4(vite@8.1.5(@types/node@24.13.3)(jiti@2.7.0)(yaml@2.9.0))(vue@3.5.40(typescript@6.0.3))':
     dependencies:
-      vite: 8.1.5(@types/node@24.13.3)(jiti@2.7.0)
+      vite: 8.1.5(@types/node@24.13.3)(jiti@2.7.0)(yaml@2.9.0)
       vue: 3.5.40(typescript@6.0.3)
 
   '@vladfrangu/async_event_emitter@2.4.7': {}
@@ -3637,11 +3836,15 @@ snapshots:
 
   '@volar/source-map@2.4.28': {}
 
-  '@volar/typescript@2.4.28':
+  '@volar/typescript@2.4.28(typescript@6.0.3)':
     dependencies:
       '@volar/language-core': 2.4.28
       path-browserify: 1.0.1
       vscode-uri: 3.1.0
+    optionalDependencies:
+      typescript: 6.0.3
+
+  '@vscode/l10n@0.0.18': {}
 
   '@vue/compiler-core@3.5.40':
     dependencies:
@@ -4482,6 +4685,8 @@ snapshots:
     dependencies:
       minimist: 1.2.8
 
+  jsonc-parser@3.3.1: {}
+
   jsonfile@4.0.0:
     optionalDependencies:
       graceful-fs: 4.2.11
@@ -4640,6 +4845,41 @@ snapshots:
 
   moment@2.30.1: {}
 
+  monaco-editor@0.52.2: {}
+
+  monaco-languageserver-types@0.4.1:
+    dependencies:
+      monaco-types: 0.1.2
+      vscode-languageserver-protocol: 3.18.2
+      vscode-uri: 3.1.0
+
+  monaco-marker-data-provider@1.2.5:
+    dependencies:
+      monaco-types: 0.1.2
+
+  monaco-types@0.1.2: {}
+
+  monaco-worker-manager@2.0.1(monaco-editor@0.52.2):
+    dependencies:
+      monaco-editor: 0.52.2
+
+  monaco-yaml@5.5.1(monaco-editor@0.52.2):
+    dependencies:
+      '@vscode/l10n': 0.0.18
+      jsonc-parser: 3.3.1
+      monaco-editor: 0.52.2
+      monaco-languageserver-types: 0.4.1
+      monaco-marker-data-provider: 1.2.5
+      monaco-types: 0.1.2
+      monaco-worker-manager: 2.0.1(monaco-editor@0.52.2)
+      path-browserify: 1.0.1
+      prettier: 3.9.6
+      proxy-disposable: 1.0.0
+      vscode-languageserver-textdocument: 1.0.12
+      vscode-languageserver-types: 3.18.0
+      vscode-uri: 3.1.0
+      yaml: 2.9.0
+
   ms@2.0.0: {}
 
   ms@2.1.3: {}
@@ -4674,6 +4914,8 @@ snapshots:
   negotiator@0.6.3: {}
 
   node-gyp-build@4.8.4: {}
+
+  node@runtime:24.19.0: {}
 
   nofilter@3.1.0: {}
 
@@ -4877,6 +5119,8 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
+  prettier@3.9.6: {}
+
   pretty-ms@8.0.0:
     dependencies:
       parse-ms: 3.0.0
@@ -4889,6 +5133,8 @@ snapshots:
     dependencies:
       forwarded: 0.2.0
       ipaddr.js: 1.9.1
+
+  proxy-disposable@1.0.0: {}
 
   qs@6.15.3:
     dependencies:
@@ -5341,7 +5587,7 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  vite@8.1.5(@types/node@24.13.3)(jiti@2.7.0):
+  vite@8.1.5(@types/node@24.13.3)(jiti@2.7.0)(yaml@2.9.0):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.5
@@ -5352,6 +5598,18 @@ snapshots:
       '@types/node': 24.13.3
       fsevents: 2.3.3
       jiti: 2.7.0
+      yaml: 2.9.0
+
+  vscode-jsonrpc@9.0.1: {}
+
+  vscode-languageserver-protocol@3.18.2:
+    dependencies:
+      vscode-jsonrpc: 9.0.1
+      vscode-languageserver-types: 3.18.0
+
+  vscode-languageserver-textdocument@1.0.12: {}
+
+  vscode-languageserver-types@3.18.0: {}
 
   vscode-uri@3.1.0: {}
 
@@ -5364,7 +5622,7 @@ snapshots:
 
   vue-tsc@3.3.7(typescript@6.0.3):
     dependencies:
-      '@volar/typescript': 2.4.28
+      '@volar/typescript': 2.4.28(typescript@6.0.3)
       '@vue/language-core': 3.3.7
       typescript: 6.0.3
 
@@ -5433,6 +5691,8 @@ snapshots:
       utf-8-validate: 5.0.10
 
   y18n@5.0.8: {}
+
+  yaml@2.9.0: {}
 
   yargs-parser@21.1.1: {}
 

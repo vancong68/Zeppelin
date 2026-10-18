@@ -8,7 +8,7 @@ window.MonacoEnvironment = {
       case "editorWorkerService":
         return new Worker(new URL("monaco-editor/esm/vs/editor/editor.worker.js", import.meta.url), { type: "module" });
       case "yaml":
-        return new Worker(new URL("./yaml.worker.js", import.meta.url), { type: "module" })
+        return new Worker(new URL("./yaml.worker.js", import.meta.url), { type: "module" });
       default:
         throw new Error(`Unknown label ${label}`);
     }
@@ -17,13 +17,19 @@ window.MonacoEnvironment = {
 
 configureMonacoYaml(monaco, {
   enableSchemaRequest: true,
-  schemas: [{
-    fileMatch: ["**/config.yaml"],
-    uri: schemaUri,
-  }],
+  schemas: [
+    {
+      fileMatch: ["**/config.yaml"],
+      uri: schemaUri,
+    },
+  ],
 });
 
-const initialModel = monaco.editor.createModel("# Paste your config here to check it\n", undefined, monaco.Uri.parse("file:///config.yaml"));
+const initialModel = monaco.editor.createModel(
+  "# Paste your config here to check it\n",
+  undefined,
+  monaco.Uri.parse("file:///config.yaml"),
+);
 initialModel.updateOptions({ tabSize: 2 });
 
 const editorRoot = document.getElementById("editor")!;
@@ -61,7 +67,7 @@ function showErrors(markers: monaco.editor.IMarker[]) {
     for (const marker of markers) {
       const error = document.createElement("div");
       error.classList.add("error");
-      
+
       const lineMarker = document.createElement("strong");
       lineMarker.innerText = `Line ${marker.startLineNumber}: `;
 

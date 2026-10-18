@@ -73,7 +73,7 @@ export const JumboCmd = utilityCmd({
       try {
         const downloadedBuffer = await getBufferFromUrl(url);
         image = resizeBuffer(downloadedBuffer, size, size);
-      } catch (err) {
+      } catch {
         if (url.toLocaleLowerCase().endsWith("fe0f.png")) {
           url = url.slice(0, url.lastIndexOf("-fe0f")) + ".png";
           try {

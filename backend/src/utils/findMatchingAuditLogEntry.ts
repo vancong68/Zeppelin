@@ -27,37 +27,41 @@ export async function findMatchingAuditLogEntry(
   if (batches.has(guild.id)) {
     candidates = await batches.get(guild.id)!.join();
   } else {
+    const { promise, resolve } = Promise.withResolvers<GuildAuditLogsEntry[]>();
+
     const batch: Batch = {
       _waitUntil: Date.now(),
       _fetchCount: 0,
-      _promise: new Promise(async (resolve) => {
-        await sleep(BATCH_DEBOUNCE_TIME);
-
-        do {
-          await sleep(Math.max(0, batch._waitUntil - Date.now()));
-        } while (Date.now() < batch._waitUntil);
-
-        const result = await guild
-          .fetchAuditLogs({
-            limit: batch._fetchCount,
-          })
-          .catch((err) => {
-            // tslint:disable-next-line:no-console
-            console.warn(`[DEBUG] Audit log error in ${guild.id} (${guild.name}): ${err.message}`);
-            return null;
-          });
-        const _candidates = Array.from(result?.entries.values() ?? []);
-
-        batches.delete(guild.id);
-        // TODO: Figure out the type
-        resolve(_candidates as any);
-      }),
+      _promise: promise,
       join() {
         batch._waitUntil = Date.now() + BATCH_DEBOUNCE_TIME;
         batch._fetchCount = Math.min(100, batch._fetchCount + BATCH_FETCH_COUNT_INCREMENT);
         return batch._promise;
       },
     };
+
+    (async () => {
+      await sleep(BATCH_DEBOUNCE_TIME);
+
+      do {
+        await sleep(Math.max(0, batch._waitUntil - Date.now()));
+      } while (Date.now() < batch._waitUntil);
+
+      const result = await guild
+        .fetchAuditLogs({
+          limit: batch._fetchCount,
+        })
+        .catch((err) => {
+          // tslint:disable-next-line:no-console
+          console.warn(`[DEBUG] Audit log error in ${guild.id} (${guild.name}): ${err.message}`);
+          return null;
+        });
+      const _candidates = Array.from(result?.entries.values() ?? []);
+
+      batches.delete(guild.id);
+      resolve(_candidates);
+    })();
+
     batches.set(guild.id, batch);
     candidates = await batch.join();
   }

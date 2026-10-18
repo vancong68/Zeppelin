@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import tailwind from "@tailwindcss/vite";
 
-export default defineConfig((configEnv) => {
+export default defineConfig((_configEnv) => {
   return {
     server: {
       port: 3002,

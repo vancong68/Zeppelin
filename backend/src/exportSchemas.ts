@@ -2,7 +2,26 @@ import fs from "node:fs";
 import { z } from "zod";
 import { availableGuildPlugins } from "./plugins/availablePlugins.js";
 import { zZeppelinGuildConfig } from "./types.js";
-import { deepPartial } from "./utils/zodDeepPartial.js";
+import { JSONSchema } from "zod/v4/core";
+
+function makeJsonSchemaDeepPartial(schema: Record<string, any>) {
+  if (schema.type === "object") {
+    delete schema.required;
+  }
+  for (const value of Object.values(schema)) {
+    if (value && typeof value === "object") {
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          if (item && typeof item === "object") {
+            makeJsonSchemaDeepPartial(item);
+          }
+        }
+      } else {
+        makeJsonSchemaDeepPartial(value);
+      }
+    }
+  }
+}
 
 const basePluginOverrideCriteriaSchema = z.strictObject({
   channel: z
@@ -59,18 +78,9 @@ if (!outputPath) {
   process.exit(1);
 }
 
-const partialConfigs = new Map<any, z.ZodType>();
-function getPartialConfig(configSchema: z.ZodType) {
-  if (!partialConfigs.has(configSchema)) {
-    partialConfigs.set(configSchema, deepPartial(configSchema));
-  }
-  return partialConfigs.get(configSchema)!;
-}
-
 function overrides(configSchema: z.ZodType): z.ZodType {
-  const partialConfig = getPartialConfig(configSchema);
   return pluginOverrideCriteriaSchema.extend({
-    config: partialConfig,
+    config: configSchema,
   });
 }
 
@@ -87,6 +97,15 @@ const fullSchema = zZeppelinGuildConfig.omit({ plugins: true }).extend({
 });
 
 const jsonSchema = z.toJSONSchema(fullSchema, { io: "input", cycles: "ref" });
+
+// Turn overrides deep partial
+const pluginsSchema = jsonSchema.properties!.plugins as JSONSchema.JSONSchema;
+for (const pluginName of Object.keys(pluginsSchema.properties!)) {
+  const pluginSchema = pluginsSchema.properties![pluginName] as JSONSchema.JSONSchema;
+  const overridesSchema = pluginSchema.properties!.overrides! as JSONSchema.JSONSchema;
+  const overrideItemSchema = overridesSchema.items! as JSONSchema.JSONSchema;
+  makeJsonSchemaDeepPartial(overrideItemSchema.properties!.config as JSONSchema.JSONSchema);
+}
 
 fs.writeFileSync(outputPath, JSON.stringify(jsonSchema, null, 2), { encoding: "utf8" });
 

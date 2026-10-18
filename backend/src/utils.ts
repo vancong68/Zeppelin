@@ -1121,7 +1121,6 @@ export function deepKeyIntersect(obj, keyReference) {
   return result;
 }
 
-const unknownUsers = new Set();
 const unknownMembers = new Set();
 
 export function resolveUserId(bot: Client, value: string) {
@@ -1310,14 +1309,12 @@ export async function confirm(
 }
 
 export function createDisabledButtonRow(
-  row: ActionRowBuilder<MessageActionRowComponentBuilder>
+  row: ActionRowBuilder<MessageActionRowComponentBuilder>,
 ): ActionRowBuilder<MessageActionRowComponentBuilder> {
   const newRow = new ActionRowBuilder<MessageActionRowComponentBuilder>();
   for (const component of row.components) {
     if (component instanceof ButtonBuilder) {
-      newRow.addComponents(
-        ButtonBuilder.from(component).setDisabled(true)
-      );
+      newRow.addComponents(ButtonBuilder.from(component).setDisabled(true));
     }
   }
   return newRow;

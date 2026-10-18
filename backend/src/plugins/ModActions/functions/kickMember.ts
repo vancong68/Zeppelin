@@ -46,7 +46,9 @@ export async function kickMember(
               guildName: pluginData.guild.name,
               reason: reasonWithAttachments,
               moderator: kickOptions.caseArgs?.modId
-                ? userToTemplateSafeUser(await resolveUser(pluginData.client, kickOptions.caseArgs.modId, "ModActions:kickMember"))
+                ? userToTemplateSafeUser(
+                    await resolveUser(pluginData.client, kickOptions.caseArgs.modId, "ModActions:kickMember"),
+                  )
                 : null,
             }),
           );
@@ -84,7 +86,7 @@ export async function kickMember(
   // Create a case for this action
   const casesPlugin = pluginData.getPlugin(CasesPlugin);
   const createdCase = await casesPlugin.createCase({
-    ...(kickOptions.caseArgs || {}),
+    ...kickOptions.caseArgs,
     userId: member.id,
     modId,
     type: CaseTypes.Kick,

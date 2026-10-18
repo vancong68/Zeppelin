@@ -67,7 +67,7 @@ export async function onMessageCreate(pluginData: GuildPluginData<SlowmodePlugin
       );
       await channel.messages.delete(msg.id);
       thisMsgLock.interrupt();
-    } catch (err) {
+    } catch {
       thisMsgLock.unlock();
     }
 

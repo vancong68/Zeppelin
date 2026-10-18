@@ -140,8 +140,9 @@ export class MessageBuffer {
   }
 
   consume(): StrictMessageContent[] {
-    return Array.from(this.finalizedChunks);
+    const chunks = this.finalizedChunks;
     this.finalizedChunks = [];
+    return Array.from(chunks);
   }
 
   finalizeAndConsume(): StrictMessageContent[] {

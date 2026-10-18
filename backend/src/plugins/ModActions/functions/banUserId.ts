@@ -61,7 +61,9 @@ export async function banUserId(
               guildName: pluginData.guild.name,
               reason: reasonWithAttachments,
               moderator: banOptions.caseArgs?.modId
-                ? userToTemplateSafeUser(await resolveUser(pluginData.client, banOptions.caseArgs.modId, "ModActions:banUserId"))
+                ? userToTemplateSafeUser(
+                    await resolveUser(pluginData.client, banOptions.caseArgs.modId, "ModActions:banUserId"),
+                  )
                 : null,
             }),
           );
@@ -85,7 +87,9 @@ export async function banUserId(
               guildName: pluginData.guild.name,
               reason: reasonWithAttachments,
               moderator: banOptions.caseArgs?.modId
-                ? userToTemplateSafeUser(await resolveUser(pluginData.client, banOptions.caseArgs.modId, "ModActions:banUserId"))
+                ? userToTemplateSafeUser(
+                    await resolveUser(pluginData.client, banOptions.caseArgs.modId, "ModActions:banUserId"),
+                  )
                 : null,
               banTime: humanizeDuration(banTime),
             }),
@@ -156,7 +160,7 @@ export async function banUserId(
   noteDetails.push(timeDetails);
 
   const createdCase = await casesPlugin.createCase({
-    ...(banOptions.caseArgs || {}),
+    ...banOptions.caseArgs,
     userId,
     modId,
     type: CaseTypes.Ban,

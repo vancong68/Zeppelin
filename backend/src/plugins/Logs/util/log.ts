@@ -28,7 +28,11 @@ async function shouldExclude(
   opts: TLogChannel,
   exclusionData: ExclusionData,
 ): Promise<boolean> {
-  if (opts.excluded_users && exclusionData.userId && opts.excluded_users.includes(exclusionData.userId as BrandedSnowflake)) {
+  if (
+    opts.excluded_users &&
+    exclusionData.userId &&
+    opts.excluded_users.includes(exclusionData.userId as BrandedSnowflake)
+  ) {
     return true;
   }
 
@@ -44,15 +48,27 @@ async function shouldExclude(
     }
   }
 
-  if (opts.excluded_channels && exclusionData.channel && opts.excluded_channels.includes(exclusionData.channel as BrandedSnowflake)) {
+  if (
+    opts.excluded_channels &&
+    exclusionData.channel &&
+    opts.excluded_channels.includes(exclusionData.channel as BrandedSnowflake)
+  ) {
     return true;
   }
 
-  if (opts.excluded_categories && exclusionData.category && opts.excluded_categories.includes(exclusionData.category as BrandedSnowflake)) {
+  if (
+    opts.excluded_categories &&
+    exclusionData.category &&
+    opts.excluded_categories.includes(exclusionData.category as BrandedSnowflake)
+  ) {
     return true;
   }
 
-  if (opts.excluded_threads && exclusionData.thread && opts.excluded_threads.includes(exclusionData.thread as BrandedSnowflake)) {
+  if (
+    opts.excluded_threads &&
+    exclusionData.thread &&
+    opts.excluded_threads.includes(exclusionData.thread as BrandedSnowflake)
+  ) {
     return true;
   }
 

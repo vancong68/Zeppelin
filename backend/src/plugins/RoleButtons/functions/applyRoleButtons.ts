@@ -80,7 +80,7 @@ export async function applyRoleButtons(
           editContent.content = " ";
         }
         await candidateMessage.edit(editContent as MessageEditOptions);
-      } catch (err) {
+      } catch {
         // Message was deleted or is inaccessible. Proceed with reposting it.
       }
     }

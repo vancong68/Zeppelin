@@ -16,53 +16,53 @@ export async function waitForButtonConfirm(
   toPost: Omit<MessageCreateOptions, "flags">,
   options?: WaitForOptions,
 ): Promise<boolean> {
-  return new Promise(async (resolve) => {
-    const contextIsInteraction = isContextInteraction(context);
-    const idMod = `${context.id}-${moment.utc().valueOf()}`;
-    const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents([
-      new ButtonBuilder()
-        .setStyle(ButtonStyle.Success)
-        .setLabel(options?.confirmText || "Confirm")
-        .setCustomId(`confirmButton:${idMod}:${uuidv4()}`),
-      new ButtonBuilder()
-        .setStyle(ButtonStyle.Danger)
-        .setLabel(options?.cancelText || "Cancel")
-        .setCustomId(`cancelButton:${idMod}:${uuidv4()}`),
-    ]);
-    const message = await sendContextResponse(context, { ...toPost, components: [row] }, true);
-    const collector = message.createMessageComponentCollector({ time: 10000 });
+  const { promise, resolve } = Promise.withResolvers<boolean>();
 
-    collector.on("collect", (interaction: MessageComponentInteraction) => {
-      if (options?.restrictToId && options.restrictToId !== interaction.user.id) {
-        interaction
-          .reply({ content: `You are not permitted to use these buttons.`, ephemeral: true })
-          .catch(noop);
-      } else if (interaction.customId.startsWith(`confirmButton:${idMod}:`)) {
-        if (!contextIsInteraction) {
-          message.delete().catch(noop);
-        } else {
-          interaction.update({ components: [createDisabledButtonRow(row)] }).catch(noop);
-        }
-        resolve(true);
-      } else if (interaction.customId.startsWith(`cancelButton:${idMod}:`)) {
-        if (!contextIsInteraction) {
-          message.delete().catch(noop);
-        } else {
-          interaction.update({ components: [createDisabledButtonRow(row)] }).catch(noop);
-        }
-        resolve(false);
-      }
-    });
+  const contextIsInteraction = isContextInteraction(context);
+  const idMod = `${context.id}-${moment.utc().valueOf()}`;
+  const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents([
+    new ButtonBuilder()
+      .setStyle(ButtonStyle.Success)
+      .setLabel(options?.confirmText || "Confirm")
+      .setCustomId(`confirmButton:${idMod}:${uuidv4()}`),
+    new ButtonBuilder()
+      .setStyle(ButtonStyle.Danger)
+      .setLabel(options?.cancelText || "Cancel")
+      .setCustomId(`cancelButton:${idMod}:${uuidv4()}`),
+  ]);
+  const message = await sendContextResponse(context, { ...toPost, components: [row] }, true);
+  const collector = message.createMessageComponentCollector({ time: 10000 });
 
-    collector.on("end", () => {
+  collector.on("collect", (interaction: MessageComponentInteraction) => {
+    if (options?.restrictToId && options.restrictToId !== interaction.user.id) {
+      interaction.reply({ content: `You are not permitted to use these buttons.`, ephemeral: true }).catch(noop);
+    } else if (interaction.customId.startsWith(`confirmButton:${idMod}:`)) {
       if (!contextIsInteraction) {
-        if (message.deletable) message.delete().catch(noop);
+        message.delete().catch(noop);
       } else {
-        message.edit({ components: [createDisabledButtonRow(row)] }).catch(noop);
+        interaction.update({ components: [createDisabledButtonRow(row)] }).catch(noop);
+      }
+      resolve(true);
+    } else if (interaction.customId.startsWith(`cancelButton:${idMod}:`)) {
+      if (!contextIsInteraction) {
+        message.delete().catch(noop);
+      } else {
+        interaction.update({ components: [createDisabledButtonRow(row)] }).catch(noop);
       }
       resolve(false);
-    });
+    }
   });
+
+  collector.on("end", () => {
+    if (!contextIsInteraction) {
+      if (message.deletable) message.delete().catch(noop);
+    } else {
+      message.edit({ components: [createDisabledButtonRow(row)] }).catch(noop);
+    }
+    resolve(false);
+  });
+
+  return promise;
 }
 
 export interface WaitForOptions {

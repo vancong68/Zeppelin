@@ -269,7 +269,7 @@ export async function muteUser(
     }
 
     theCase = await casesPlugin.createCase({
-      ...(muteOptions.caseArgs || {}),
+      ...muteOptions.caseArgs,
       userId,
       modId: muteOptions.caseArgs?.modId,
       type: CaseTypes.Mute,

@@ -33,8 +33,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, watch } from "vue";
+import { useRoute } from "vue-router";
 
 const errorMessages = {
   noAccess: "No dashboard access. If you think this is a mistake, please contact your server owner.",

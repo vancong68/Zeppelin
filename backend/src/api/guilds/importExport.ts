@@ -79,15 +79,13 @@ export function initGuildsImportExportAPI(guildRouter: express.Router) {
           err.issues[0].received
         } at /${err.issues[0].path.join("/")}`;
         return clientError(res, `Invalid import data format: ${prettyMessage}`);
-        return;
       }
 
       let caseHandlingMode: CaseHandlingMode;
       try {
         caseHandlingMode = caseHandlingModeSchema.parse(req.body.caseHandlingMode);
-      } catch (err) {
+      } catch {
         return clientError(res, "Invalid case handling mode");
-        return;
       }
 
       const seenCaseNumbers = new Set();

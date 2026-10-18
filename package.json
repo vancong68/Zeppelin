@@ -8,8 +8,9 @@
     "build:backend": "pnpm --filter '@zeppelinbot/backend...' run build",
     "build:dashboard": "pnpm --filter '@zeppelinbot/dashboard...' run build",
     "format": "oxfmt",
-    "lint": "oxlint --check",
-    "lint:fix": "oxfmt",
+    "format:check": "oxfmt --check",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
     "run:migrate": "cd backend && pnpm run migrate",
     "run:bot": "cd backend && pnpm run start-bot-prod",
     "run:api": "cd backend && pnpm run start-api-prod",
@@ -27,5 +28,12 @@
   "engines": {
     "node": ">=24"
   },
-  "packageManager": "pnpm@11.21.0+sha512.521705bce689924eac72f5a3587122f362689ef6571e55ba80076fd637c11132ecffada26fad4ea79c485bfddbfd3d5a2a5b05805a77e893de71ec8a6cca3bb1"
+  "packageManager": "pnpm@11.21.0+sha512.521705bce689924eac72f5a3587122f362689ef6571e55ba80076fd637c11132ecffada26fad4ea79c485bfddbfd3d5a2a5b05805a77e893de71ec8a6cca3bb1",
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "^24.0.0",
+      "onFail": "download"
+    }
+  }
 }

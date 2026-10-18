@@ -8,8 +8,8 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "typescript": "~5.8.3",
-    "vite": "^6.3.5"
+    "typescript": "catalog:ts7",
+    "vite": "^8.1.5"
   },
   "dependencies": {
     "monaco-editor": "^0.52.2",

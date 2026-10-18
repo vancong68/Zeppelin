@@ -2,9 +2,10 @@
   "name": "Zeppelin Development",
 
   "dockerComposeFile": "../docker-compose.development.yml",
+  "initializeCommand": "docker compose -f ./docker-compose.development.yml up -d --wait",
 
   "service": "devenv",
-  "remoteUser": "ubuntu",
+  "remoteUser": "dev",
   "workspaceFolder": "/workspace/zeppelin",
   "customizations": {
     "vscode": {
