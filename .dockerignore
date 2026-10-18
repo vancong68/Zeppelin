@@ -49,5 +49,7 @@ config-errors.txt
 **/.codex
 **/.opencode
 
-/config-checker
+# NOTE: config-checker is intentionally NOT excluded here - it is a pnpm
+# workspace package, and the Dockerfile copies its package.json before running
+# `pnpm install --frozen-lockfile`.
 /presetup-configurator

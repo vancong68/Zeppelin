@@ -39,7 +39,18 @@ RUN pnpm run build
 # A clean --prod reinstall keeps all runtime deps while dropping dev dependencies.
 RUN rm -rf node_modules && pnpm install --prod --frozen-lockfile
 
+# The pnpm store is only needed during the installs above. Removing it keeps
+# the image small - node_modules entries are hard links into the store and
+# remain valid after it is deleted.
+RUN rm -rf /zeppelin/.pnpm-store
+
 ENV NODE_ENV=production
+
+# Optional build info, matching the upstream image layout (read by the !about
+# command; upstream's build-image.sh passes these as build args).
+ARG COMMIT_HASH=unknown
+ARG BUILD_TIME=unknown
+RUN echo "$COMMIT_HASH" > /zeppelin/.commit-hash && echo "$BUILD_TIME" > /zeppelin/.build-time
 
 # Make entrypoint executable
 RUN chmod +x /zeppelin/entrypoint.sh
