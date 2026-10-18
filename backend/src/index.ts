@@ -55,17 +55,41 @@ import { DecayingCounter } from "./utils/DecayingCounter.js";
 import { enableProfiling } from "./utils/easyProfiler.js";
 import { loadYamlSafely } from "./utils/loadYamlSafely.js";
 import http from "http";
+import { resolveHealthPort } from "./utils/healthPort.js";
 
 // Health check server.
 // Render's Web Services require the process to bind a port, so in production
 // we bind to Render's injected PORT by default. Set BOT_HEALTH_PORT to
 // override, or set it to 0 to disable.
-const healthPort =
-  Number(process.env.BOT_HEALTH_PORT) || (env.NODE_ENV === "production" ? Number(process.env.PORT) : 0) || 0;
+//
+// The endpoint always responds 200 while the process is alive. It intentionally
+// does not depend on Discord gateway or database readiness: Render restarts a
+// service with a failing health check, and the (potentially slow) startup of
+// the database connection and Discord gateway must not cause a restart loop.
+// Their current state is reported in the response body instead.
+let botClient: Client | null = null;
+
+const healthPort = resolveHealthPort({
+  BOT_HEALTH_PORT: process.env.BOT_HEALTH_PORT,
+  NODE_ENV: env.NODE_ENV,
+  PORT: process.env.PORT,
+});
 if (healthPort) {
   const healthServer = http.createServer((_req, res) => {
     res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ status: "ok", service: "zeppelin-bot" }));
+    res.end(
+      JSON.stringify({
+        status: "ok",
+        service: "zeppelin-bot",
+        uptime_seconds: Math.round(process.uptime()),
+        discord: botClient?.isReady() ? "ready" : "connecting",
+        database: dataSource.isInitialized ? "connected" : "connecting",
+      }),
+    );
+  });
+  healthServer.on("error", (err) => {
+    console.error(`Bot health check server failed to start on port ${healthPort}: ${errorMessage(err)}`);
+    process.exit(1);
   });
   healthServer.listen(healthPort, "0.0.0.0", () => {
     console.log(`Bot health check server listening on port ${healthPort}`);
@@ -280,6 +304,7 @@ connect().then(async () => {
     ],
   });
 
+  botClient = client;
   client.setMaxListeners(200);
 
   const safe429DecayInterval = 5 * SECONDS;

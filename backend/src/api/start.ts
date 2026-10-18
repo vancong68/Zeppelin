@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import multer from "multer";
 import { TokenError } from "passport-oauth2";
+import { dataSource } from "../data/dataSource.js";
 import { env } from "../env.js";
 import { initArchives } from "./archives.js";
 import { initAuth } from "./auth.js";
@@ -58,6 +59,28 @@ app.use((req, res, next) => {
 });
 
 const port = Number(process.env.PORT) || 3001;
-app.listen(port, "0.0.0.0", () => console.log(`API server listening on port ${port}`)); // tslint:disable-line
+const server = app.listen(port, "0.0.0.0", () => console.log(`API server listening on port ${port}`)); // tslint:disable-line
 
 startBackgroundTasks();
+
+// Graceful shutdown: stop accepting connections, let in-flight requests finish,
+// then close the database pool. Render sends SIGTERM before terminating a
+// service (30s grace period by default).
+let stopping = false;
+function shutdown(signal: string) {
+  if (stopping) {
+    return;
+  }
+  stopping = true;
+  console.log(`Received ${signal}, shutting down...`); // tslint:disable-line
+
+  // Force-exit if connections or the pool don't close in time
+  setTimeout(() => process.exit(1), 10_000).unref();
+
+  server.close(() => {
+    void dataSource.destroy().finally(() => process.exit(0));
+  });
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

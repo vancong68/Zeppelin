@@ -69,4 +69,18 @@ if (fs.existsSync(envPath)) {
   toValidate = { ...toValidate, ...dotenv.parse(buf) };
 }
 
-export const env = envType.parse(toValidate);
+const parsed = envType.safeParse(toValidate);
+if (!parsed.success) {
+  const issueLines = parsed.error.issues.map(
+    (issue) => `  - ${issue.path.join(".") || "environment"}: ${issue.message}`,
+  );
+  throw new Error(
+    [
+      "Invalid or missing environment variables:",
+      ...issueLines,
+      "See .env.example (or RENDER.md for Render deployments) for the expected variables.",
+    ].join("\n"),
+  );
+}
+
+export const env = parsed.data;
