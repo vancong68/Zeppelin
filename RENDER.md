@@ -1,25 +1,25 @@
 # Deploying Zeppelin on Render.com
 
-This guide covers deploying Zeppelin as **three separate Render services**: bot, API, and dashboard. All three run the same Docker image; the `dockerCommand` in `render.yaml` (or the service's *Docker Command* setting) selects which process `entrypoint.sh` starts.
+This guide covers deploying Zeppelin as **three separate Render services**: bot, API, and dashboard. All three run the same Docker image; the `dockerCommand` in `render.yaml` (or the service's _Docker Command_ setting) selects which process `entrypoint.sh` starts.
 
 ## Architecture
 
-| Service              | Render type  | Command     | Plan                              | Notes                                            |
-| -------------------- | ------------ | ----------- | --------------------------------- | ------------------------------------------------ |
-| `zeppelin-bot`       | Web Service  | `bot`       | **paid** (e.g. `0.5c-512mb`)      | Discord bot; **must not run on the free plan**   |
-| `zeppelin-api`       | Web Service  | `api`       | free or paid                      | REST API; binds Render's `PORT`                  |
-| `zeppelin-dashboard` | Web Service  | `dashboard` | free or paid                      | Serves the UI; binds Render's `PORT`             |
+| Service              | Render type | Command     | Plan                         | Notes                                          |
+| -------------------- | ----------- | ----------- | ---------------------------- | ---------------------------------------------- |
+| `zeppelin-bot`       | Web Service | `bot`       | **paid** (e.g. `0.5c-512mb`) | Discord bot; **must not run on the free plan** |
+| `zeppelin-api`       | Web Service | `api`       | free or paid                 | REST API; binds Render's `PORT`                |
+| `zeppelin-dashboard` | Web Service | `dashboard` | free or paid                 | Serves the UI; binds Render's `PORT`           |
 
 ### Why the bot needs a paid plan
 
 Verified against [Render's free-tier documentation](https://render.com/docs/free):
 
 - Free instances exist **only** for web services, static sites, Render Postgres and Key Value instances — **background workers cannot be free**.
-- A free web service **spins down after 15 minutes without inbound traffic** (HTTP requests or WebSocket messages from existing connections). The bot only makes *outbound* connections (Discord gateway, MySQL), so a free bot service goes offline shortly after startup. Discord messages do **not** wake it up — only inbound HTTP does.
+- A free web service **spins down after 15 minutes without inbound traffic** (HTTP requests or WebSocket messages from existing connections). The bot only makes _outbound_ connections (Discord gateway, MySQL), so a free bot service goes offline shortly after startup. Discord messages do **not** wake it up — only inbound HTTP does.
 - A spun-down service takes about a minute to spin back up. Free services can also be restarted by Render at any time and have no shell access or one-off jobs.
 - Keep-alive tricks (periodic pings / fake traffic) violate Render's policies and are **not** used by this project.
 
-Give `zeppelin-bot` any paid plan (the blueprint uses `0.5c-512mb`) and it stays online continuously. As an alternative, the bot also works as a **Background Worker** (`type: worker`, same image, `bot` command) — a worker has no public URL or `PORT`, so the bot's health server is simply disabled there. Note that a service's *type* cannot be changed after creation, so switching to a worker means recreating the service in the Render dashboard.
+Give `zeppelin-bot` any paid plan (the blueprint uses `0.5c-512mb`) and it stays online continuously. As an alternative, the bot also works as a **Background Worker** (`type: worker`, same image, `bot` command) — a worker has no public URL or `PORT`, so the bot's health server is simply disabled there. Note that a service's _type_ cannot be changed after creation, so switching to a worker means recreating the service in the Render dashboard.
 
 `zeppelin-api` and `zeppelin-dashboard` are fine on the free plan if you accept a cold start (up to ~1 minute) on the first request after idling.
 
@@ -60,7 +60,7 @@ In the [Discord Developer Portal](https://discord.com/developers/applications):
 
 1. Add this OAuth redirect URL (replace with your actual API URL):
    `https://<your-api-service>.onrender.com/auth/oauth-callback`
-2. Enable the **Privileged Gateway Intents** (Message Content, Server Members) under *Bot → Privileged Gateway Intents*. Without them the bot disconnects with a "Used disallowed intents" error. See `docs/PRIVILEGED_INTENTS.md` for the review process.
+2. Enable the **Privileged Gateway Intents** (Message Content, Server Members) under _Bot → Privileged Gateway Intents_. Without them the bot disconnects with a "Used disallowed intents" error. See `docs/PRIVILEGED_INTENTS.md` for the review process.
 
 ## Environment variables
 
@@ -72,28 +72,28 @@ The `render.yaml` blueprint creates the **`zeppelin-shared` env group empty** �
 
 Values are intentionally **not** stored in `render.yaml` so secrets never end up in Git.
 
-| Variable                  | Required | Description                                                                                             |
-| ------------------------- | -------- | ------------------------------------------------------------------------------------------------------- |
-| `KEY`                     | ✅       | 32-character encryption key                                                                             |
-| `CLIENT_ID`               | ✅       | Discord application client ID                                                                           |
-| `CLIENT_SECRET`           | ✅       | Discord application client secret (32 chars)                                                            |
-| `BOT_TOKEN`               | ✅       | Discord bot token                                                                                       |
-| `DASHBOARD_URL`           | ✅       | Full URL of your dashboard (e.g. `https://zeppelin-dashboard.onrender.com`); used for API CORS          |
-| `API_URL`                 | ✅       | Full URL of your API (e.g. `https://zeppelin-api.onrender.com`); used for OAuth and by the dashboard    |
-| `DB_HOST`                 | ✅       | MySQL hostname                                                                                          |
-| `DB_PORT`                 | ✅       | MySQL port (usually `3306`)                                                                             |
-| `DB_USER`                 | ✅       | MySQL username                                                                                          |
-| `DB_PASSWORD`             | ✅       | MySQL password                                                                                          |
-| `DB_DATABASE`             | ✅       | MySQL database name                                                                                     |
-| `REDIS_URL`               | ❌       | Redis connection URL (e.g. `redis://...`). Optional — caching is disabled if unset or unreachable      |
-| `STAFF`                   | ❌       | Comma-separated Discord user IDs for bot staff                                                          |
-| `DEFAULT_ALLOWED_SERVERS` | ❌       | Comma-separated server IDs                                                                              |
-| `FISHFISH_API_KEY`        | ❌       | FishFish API key                                                                                        |
-| `PHISHERMAN_API_KEY`      | ❌       | Phisherman API key                                                                                      |
-| `DEFAULT_SUCCESS_EMOJI`   | ❌       | Default success emoji (default: `✅`)                                                                   |
-| `DEFAULT_ERROR_EMOJI`     | ❌       | Default error emoji (default: `❌`)                                                                     |
-| `DEBUG`                   | ❌       | Set to `true` to enable debug mode (disables signal handling; for local debugging only)                 |
-| `API_PATH_PREFIX`         | ❌       | Leave **empty** on Render (API is on its own domain)                                                    |
+| Variable                  | Required | Description                                                                                              |
+| ------------------------- | -------- | -------------------------------------------------------------------------------------------------------- |
+| `KEY`                     | ✅       | 32-character encryption key                                                                              |
+| `CLIENT_ID`               | ✅       | Discord application client ID                                                                            |
+| `CLIENT_SECRET`           | ✅       | Discord application client secret (32 chars)                                                             |
+| `BOT_TOKEN`               | ✅       | Discord bot token                                                                                        |
+| `DASHBOARD_URL`           | ✅       | Full URL of your dashboard (e.g. `https://zeppelin-dashboard.onrender.com`); used for API CORS           |
+| `API_URL`                 | ✅       | Full URL of your API (e.g. `https://zeppelin-api.onrender.com`); used for OAuth and by the dashboard     |
+| `DB_HOST`                 | ✅       | MySQL hostname                                                                                           |
+| `DB_PORT`                 | ✅       | MySQL port (usually `3306`)                                                                              |
+| `DB_USER`                 | ✅       | MySQL username                                                                                           |
+| `DB_PASSWORD`             | ✅       | MySQL password                                                                                           |
+| `DB_DATABASE`             | ✅       | MySQL database name                                                                                      |
+| `REDIS_URL`               | ❌       | Redis connection URL (e.g. `redis://...`). Optional — caching is disabled if unset or unreachable        |
+| `STAFF`                   | ❌       | Comma-separated Discord user IDs for bot staff                                                           |
+| `DEFAULT_ALLOWED_SERVERS` | ❌       | Comma-separated server IDs                                                                               |
+| `FISHFISH_API_KEY`        | ❌       | FishFish API key                                                                                         |
+| `PHISHERMAN_API_KEY`      | ❌       | Phisherman API key                                                                                       |
+| `DEFAULT_SUCCESS_EMOJI`   | ❌       | Default success emoji (default: `✅`)                                                                    |
+| `DEFAULT_ERROR_EMOJI`     | ❌       | Default error emoji (default: `❌`)                                                                      |
+| `DEBUG`                   | ❌       | Set to `true` to enable debug mode (disables signal handling; for local debugging only)                  |
+| `API_PATH_PREFIX`         | ❌       | Leave **empty** on Render (API is on its own domain)                                                     |
 | `BOT_HEALTH_PORT`         | ❌       | Bot only. Overrides the health-check port; `0` disables the health server. Ignored on background workers |
 
 Missing or invalid variables abort startup with a clear list, e.g. `Invalid or missing environment variables: - BOT_TOKEN: …`.
@@ -118,11 +118,11 @@ render blueprints validate render.yaml
 
 Create three services. For each: **New → Web Service**, Runtime **Docker**, same repo, Dockerfile Path `./Dockerfile`, Health Check Path `/`, and link the `zeppelin-shared` env group plus `NODE_ENV=production`.
 
-| Service  | Docker Command | Compute plan                                            |
-| -------- | -------------- | ------------------------------------------------------- |
-| bot      | `bot`          | any **paid** plan (free will spin down — see above)     |
-| api      | `api`          | free or paid                                            |
-| dashboard | `dashboard`   | free or paid                                            |
+| Service   | Docker Command | Compute plan                                        |
+| --------- | -------------- | --------------------------------------------------- |
+| bot       | `bot`          | any **paid** plan (free will spin down — see above) |
+| api       | `api`          | free or paid                                        |
+| dashboard | `dashboard`    | free or paid                                        |
 
 > **Important:** Set the Docker Command to `dashboard`, `api`, or `bot` — not `npm run start-dashboard` or `./entrypoint.sh dashboard`. For backward compatibility the image also accepts `npm run start-bot` / `start-api` / `start-dashboard`, but the short commands are recommended. If a service was created with an old command, update it under **Settings → Docker Command**.
 
@@ -176,7 +176,7 @@ Make sure the service uses the current image and Docker Command `bot` — the bo
 
 ### Bot disconnects with "Used disallowed intents"
 
-Enable the **Message Content** and **Server Members** privileged intents in the Discord Developer Portal → your application → *Bot*.
+Enable the **Message Content** and **Server Members** privileged intents in the Discord Developer Portal → your application → _Bot_.
 
 ### Database connection errors / `Database timezone must be UTC`
 

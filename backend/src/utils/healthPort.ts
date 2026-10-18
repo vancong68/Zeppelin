@@ -8,11 +8,7 @@
  *
  * Invalid values resolve to `0` (disabled).
  */
-export function resolveHealthPort(env: {
-  BOT_HEALTH_PORT?: string;
-  NODE_ENV?: string;
-  PORT?: string;
-}): number {
+export function resolveHealthPort(env: { BOT_HEALTH_PORT?: string; NODE_ENV?: string; PORT?: string }): number {
   const override = env.BOT_HEALTH_PORT?.trim();
   if (override) {
     return parsePort(override);
