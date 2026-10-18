@@ -105,12 +105,34 @@
           <li v-else>{{ deletedTotal }} records were deleted.</li>
           <li v-if="result.deleteHistoricalData">Historical and moderation records were deleted as requested.</li>
           <li v-else>Historical and moderation records were kept.</li>
-          <li v-if="result.discord.requested && result.discord.left">The bot left the Discord server.</li>
+          <li v-if="result.discord.requested && result.discord.alreadyGone">
+            The bot was already not in the Discord server.
+          </li>
+          <li v-else-if="result.discord.requested && result.discord.left">The bot left the Discord server.</li>
         </ul>
 
         <div v-if="result.discord.requested && !result.discord.left" class="mt-4 rounded bg-red-900/40 p-3">
-          The server was removed from Zeppelin, but the bot could not leave the Discord server:
-          {{ result.discord.error }}. You can retry with only the "bot leaves the Discord server" option selected.
+          <p>
+            The server was removed from Zeppelin, but the bot could not leave the Discord server:
+            {{ result.discord.error }}.
+          </p>
+          <p class="mt-1">
+            {{
+              result.discord.retryable
+                ? "This looks like a temporary problem, so you can try again."
+                : "Retrying is unlikely to help; the bot's token and access to the server need to be checked."
+            }}
+          </p>
+          <p v-if="retryError" class="mt-1">{{ retryError }}</p>
+          <button
+            v-if="result.discord.retryable"
+            type="button"
+            class="mt-2 rounded bg-red-900 px-3 py-1 hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50"
+            :disabled="retrying"
+            @click="retryLeavingDiscord"
+          >
+            {{ retrying ? "Retrying..." : "Retry leaving Discord" }}
+          </button>
         </div>
 
         <div class="mt-6 flex justify-end">
@@ -157,6 +179,8 @@ interface RemovalResult {
   discord: {
     requested: boolean;
     left: boolean | null;
+    alreadyGone: boolean;
+    retryable: boolean;
     error: string | null;
   };
 }
@@ -181,6 +205,8 @@ export default {
       typedGuildId: "",
       submitting: false,
       submitError: "",
+      retrying: false,
+      retryError: "",
       result: null as RemovalResult | null,
       tableLabels: {
         allowed_guilds: "managed server registry entry",
@@ -280,6 +306,31 @@ export default {
         this.submitError = `Removal failed: ${message}`;
       } finally {
         this.submitting = false;
+      }
+    },
+
+    async retryLeavingDiscord() {
+      const current = this.result;
+      if (!current || this.retrying) return;
+
+      this.retrying = true;
+      this.retryError = "";
+
+      try {
+        // Re-running the removal is safe: the server is already deleted, so this only
+        // performs another (idempotent) attempt at making the bot leave the Discord server.
+        const retryResult = await this.$store.dispatch("guilds/removeGuildPermanently", {
+          guildId: this.guild.id,
+          confirmGuildId: this.guild.id,
+          deleteHistoricalData: false,
+          leaveDiscordServer: true,
+        });
+        this.result = { ...current, discord: retryResult.discord };
+      } catch (err) {
+        const message = err instanceof ApiError ? (err.body?.error ?? err.message) : String(err);
+        this.retryError = `Retrying failed: ${message}`;
+      } finally {
+        this.retrying = false;
       }
     },
   },

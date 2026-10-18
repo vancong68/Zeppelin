@@ -49,6 +49,7 @@ export interface AuditLogEventData extends Record<AuditLogEventType, unknown> {
     deleted_always_total: number;
     deleted_historical_total: number;
     discord_left: boolean | null;
+    discord_already_gone: boolean;
   };
 }
 

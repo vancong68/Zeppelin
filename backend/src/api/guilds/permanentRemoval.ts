@@ -7,10 +7,8 @@ import { env } from "../../env.js";
 import { isSnowflake } from "../../utils.js";
 import { requireStaff } from "../permissions.js";
 import { clientError, serverError } from "../responses.js";
+import { leaveDiscordGuild } from "./leaveDiscord.js";
 import { validatePermanentRemovalRequest } from "./permanentRemovalRequest.js";
-
-const DISCORD_API_URL = "https://discord.com/api/v10";
-const DISCORD_REQUEST_TIMEOUT = 15_000;
 
 const allowedGuilds = new AllowedGuilds();
 const auditLog = new ApiAuditLog();
@@ -21,30 +19,6 @@ function sumCounts(counts: GuildRemovalCounts): number {
 
 function errorDetail(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
-}
-
-/**
- * Makes the bot leave the Discord server. A 404 counts as success: it means the bot
- * is not (or no longer) in the server.
- */
-async function leaveDiscordGuild(guildId: string): Promise<{ left: boolean; error: string | null }> {
-  try {
-    const response = await fetch(`${DISCORD_API_URL}/guilds/${guildId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bot ${env.BOT_TOKEN}` },
-      signal: AbortSignal.timeout(DISCORD_REQUEST_TIMEOUT),
-    });
-
-    if (response.ok || response.status === 404) {
-      return { left: true, error: null };
-    }
-
-    const body = await response.text().catch(() => "");
-    const detail = body ? `: ${body.slice(0, 300)}` : "";
-    return { left: false, error: `Discord API returned status ${response.status}${detail}` };
-  } catch (err) {
-    return { left: false, error: err instanceof Error ? err.message : String(err) };
-  }
 }
 
 export function initGuildsPermanentRemovalAPI(router: express.Router) {
@@ -104,15 +78,25 @@ export function initGuildsPermanentRemovalAPI(router: express.Router) {
       );
     }
 
-    const discord: { requested: boolean; left: boolean | null; error: string | null } = {
+    const discord: {
+      requested: boolean;
+      left: boolean | null;
+      alreadyGone: boolean;
+      retryable: boolean;
+      error: string | null;
+    } = {
       requested: leaveDiscordServer,
       left: null,
+      alreadyGone: false,
+      retryable: false,
       error: null,
     };
 
     if (leaveDiscordServer) {
-      const result = await leaveDiscordGuild(guildId);
+      const result = await leaveDiscordGuild(guildId, env.BOT_TOKEN);
       discord.left = result.left;
+      discord.alreadyGone = result.alreadyGone;
+      discord.retryable = result.retryable;
       discord.error = result.error;
     }
 
@@ -129,6 +113,7 @@ export function initGuildsPermanentRemovalAPI(router: express.Router) {
       deleted_always_total: alwaysTotal,
       deleted_historical_total: deleteHistoricalData ? historicalTotal : 0,
       discord_left: discord.left,
+      discord_already_gone: discord.alreadyGone,
     });
 
     res.json({
