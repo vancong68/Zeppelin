@@ -1,10 +1,22 @@
 # Render.com Blueprint
 # Deploy with: https://render.com/docs/blueprint-spec
 #
-# Creates three FREE services:
-#   - zeppelin-bot       (web service - free plan does not allow background workers)
-#   - zeppelin-api       (web service)
-#   - zeppelin-dashboard (web service)
+# Creates the three services described in RENDER.md:
+#   - zeppelin-bot       (web service, REQUIRES A PAID PLAN - see below)
+#   - zeppelin-api       (web service, works on the free plan)
+#   - zeppelin-dashboard (web service, works on the free plan)
+#
+# Render free-plan facts (verified against https://render.com/docs/free):
+# - Free instances exist only for web services, static sites, Render Postgres
+#   and Key Value instances - NOT for background workers.
+# - A free web service spins down after 15 minutes without INBOUND traffic.
+#   The bot only makes outbound connections (Discord gateway, database), so a
+#   bot service on the free plan goes offline shortly after startup.
+# - Keep-alive workarounds (fake traffic) are not allowed and are not used.
+#   Give zeppelin-bot any paid plan to keep it online 24/7 - the bot also works
+#   as a background worker (`type: worker` with the same image and `bot`
+#   command), but converting requires recreating the service because a
+#   service's type cannot be changed after creation.
 #
 # Prerequisites:
 # - External MySQL database (Render does not offer managed MySQL)
@@ -12,24 +24,25 @@
 #   are added in the Render Dashboard - see RENDER.md)
 
 # Shared environment variables group.
-# Created empty by this Blueprint. After the first deploy, go to
-# Render Dashboard > Env Groups > "zeppelin-shared", paste the values,
-# then redeploy the services. Values are intentionally NOT in this file
-# (secrets must not be committed to Git; env groups do not support sync: false).
+# Created empty by this Blueprint: blueprint environment groups don't support
+# `sync: false`, so the keys from the RENDER.md table must be added manually
+# (Dashboard > Env Groups > "zeppelin-shared"), then the services redeployed.
+# Secret values are intentionally NOT in this file.
 envVarGroups:
   - name: zeppelin-shared
 
 services:
-  # --- Bot (Web Service, free) ---
-  # Free plan does not support background workers, so the bot runs as a web
-  # service. It binds Render's PORT (health check) and stays awake while the
-  # Discord gateway sends messages over the WebSocket connection.
+  # --- Bot (Web Service, paid plan) ---
+  # The bot binds Render's PORT for its health check server and reports
+  # Discord/database status in the response body. A paid plan never spins
+  # down; the free plan would take the bot offline after 15 minutes without
+  # inbound HTTP traffic (see the notes at the top of this file).
   - type: web
     name: zeppelin-bot
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerCommand: bot
-    plan: free
+    plan: 0.5c-512mb
     healthCheckPath: /
     envVars:
       - key: NODE_ENV
@@ -37,6 +50,7 @@ services:
       - fromGroup: zeppelin-shared
 
   # --- API (Web Service) ---
+  # Free plan is fine: cold starts after idle only slow down the first request.
   - type: web
     name: zeppelin-api
     runtime: docker
@@ -50,6 +64,7 @@ services:
       - fromGroup: zeppelin-shared
 
   # --- Dashboard (Web Service) ---
+  # Free plan is fine: cold starts after idle only slow down the first request.
   - type: web
     name: zeppelin-dashboard
     runtime: docker
