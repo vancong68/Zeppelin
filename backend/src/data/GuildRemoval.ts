@@ -6,7 +6,6 @@ import { ApiAuditLogEntry } from "./entities/ApiAuditLogEntry.js";
 import { ApiPermissionAssignment } from "./entities/ApiPermissionAssignment.js";
 import { ArchiveEntry } from "./entities/ArchiveEntry.js";
 import { AutoReaction } from "./entities/AutoReaction.js";
-import { ButtonRole } from "./entities/ButtonRole.js";
 import { Case } from "./entities/Case.js";
 import { Config } from "./entities/Config.js";
 import { ContextMenuLink } from "./entities/ContextMenuLink.js";
@@ -108,7 +107,8 @@ export const ALWAYS_REMOVAL_STEPS: RemovalStep[] = [
   guildColumnStep("counters", Counter),
   guildColumnStep("antiraid_levels", AntiraidLevel),
   guildColumnStep("auto_reactions", AutoReaction),
-  guildColumnStep("button_roles", ButtonRole),
+  // button_roles is deliberately not included: migration 1650721020704-RemoveButtonRolesTable
+  // drops the table, so it does not exist in migrated databases (only the stale entity remains).
   guildColumnStep("context_menus", ContextMenuLink),
   guildColumnStep("member_cache", MemberCacheItem),
   guildColumnStep("member_timezones", MemberTimezone),

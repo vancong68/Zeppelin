@@ -13,7 +13,9 @@ import type { DataSource } from "typeorm";
  *
  *        CREATE DATABASE zeppelin_removal_test CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
  *
- *      Never point this at production data.
+ *      The tests drop all tables in that database and rebuild the schema by running the real
+ *      migrations, so the schema matches production (e.g. tables dropped by migrations such as
+ *      button_roles do not exist). Never point this at production data.
  *   2. Run with the tests enabled, optionally overriding the connection env vars:
  *
  *      ZEPPELIN_REMOVAL_INTEGRATION_TEST=1 \
@@ -36,6 +38,7 @@ const NOW = "2026-01-01 00:00:00";
 
 interface SeededGuild {
   counterId: number;
+  counterValueId: number;
   caseIds: number[];
 }
 
@@ -79,7 +82,17 @@ async function getContext(): Promise<TestContext> {
   }
 
   await dataSource.initialize();
-  await dataSource.synchronize(true);
+
+  await dataSource.query("SET FOREIGN_KEY_CHECKS = 0");
+  for (const row of await dataSource.query("SHOW TABLES")) {
+    const tableName = Object.values(row)[0];
+    await dataSource.query(`DROP TABLE IF EXISTS \`${tableName}\``);
+  }
+  await dataSource.query("SET FOREIGN_KEY_CHECKS = 1");
+
+  // Build the schema from the real migrations so it matches production (this is how the
+  // button_roles incident was caught: synchronize() recreated a table that migrations drop).
+  await dataSource.runMigrations();
 
   await dataSource.query(
     "INSERT INTO api_user_info (id, data, updated_at) VALUES (?, ?, ?)",
@@ -185,12 +198,10 @@ async function seedGuild(guildId: string, options: { configId: number }): Promis
     [counterId],
   );
 
-  await ds.query("INSERT INTO counter_values (id, counter_id, channel_id, user_id, value) VALUES (?, ?, ?, ?, 1)", [
-    `value-${guildId}`,
-    counterId,
-    "600000000000000001",
-    "700000000000000001",
-  ]);
+  const counterValueResult = await ds.query(
+    "INSERT INTO counter_values (counter_id, channel_id, user_id, value) VALUES (?, ?, ?, 1)",
+    [counterId, "600000000000000001", "700000000000000001"],
+  );
 
   await ds.query("INSERT INTO counter_trigger_states (trigger_id, channel_id, user_id) VALUES (?, ?, ?)", [
     triggerResult.insertId,
@@ -204,7 +215,7 @@ async function seedGuild(guildId: string, options: { configId: number }): Promis
     NOW,
   ]);
 
-  return { counterId, caseIds };
+  return { counterId, counterValueId: counterValueResult.insertId, caseIds };
 }
 
 integrationTest("removes configuration and registry records, keeps historical records by default", async (t) => {
@@ -229,7 +240,7 @@ integrationTest("removes configuration and registry records, keeps historical re
   t.is(await countRows("configs", "`key` = ?", [`guild-${GUILD_A}`]), 0);
   t.is(await countRows("api_permissions", "guild_id = ?", [GUILD_A]), 0);
   t.is(await countRows("counters", "guild_id = ?", [GUILD_A]), 0);
-  t.is(await countRows("counter_values", "id = ?", [`value-${GUILD_A}`]), 0);
+  t.is(await countRows("counter_values", "id = ?", [seeded.counterValueId]), 0);
   t.is(await countRows("counter_triggers", "counter_id = ?", [seeded.counterId]), 0);
   t.is(await countRows("tags", "guild_id = ?", [GUILD_A]), 0);
 
@@ -278,6 +289,7 @@ integrationTest("rolls back completely when a deletion step fails, and can be re
   await seedGuild(GUILD_C, { configId: 30 });
 
   // Force a failure mid-removal: the case_notes table is needed for counting historical records
+  const [createTable] = await dataSource.query("SHOW CREATE TABLE case_notes");
   await dataSource.query("DROP TABLE case_notes");
   await t.throwsAsync(() => removeGuildPermanently(GUILD_C, { deleteHistoricalData: true }));
 
@@ -287,8 +299,8 @@ integrationTest("rolls back completely when a deletion step fails, and can be re
   t.is(await countRows("cases", "guild_id = ?", [GUILD_C]), 2);
   t.is(await countRows("tags", "guild_id = ?", [GUILD_C]), 1);
 
-  // Restore the schema and retry safely
-  await dataSource.synchronize();
+  // Restore the exact table and retry safely
+  await dataSource.query(createTable["Create Table"]);
 
   const result = await removeGuildPermanently(GUILD_C, { deleteHistoricalData: true });
   t.is(result.always.allowed_guilds, 1);

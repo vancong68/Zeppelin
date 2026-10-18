@@ -19,6 +19,10 @@ function sumCounts(counts: GuildRemovalCounts): number {
   return Object.values(counts).reduce((total, count) => total + count, 0);
 }
 
+function errorDetail(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 /**
  * Makes the bot leave the Discord server. A 404 counts as success: it means the bot
  * is not (or no longer) in the server.
@@ -68,7 +72,7 @@ export function initGuildsPermanentRemovalAPI(router: express.Router) {
       });
     } catch (err) {
       console.error(`Error while building removal preview for server ${guildId}:`, err);
-      return serverError(res, "Failed to read the server's data");
+      return serverError(res, `Failed to read the server's data: ${errorDetail(err)}`);
     }
   });
 
@@ -94,7 +98,10 @@ export function initGuildsPermanentRemovalAPI(router: express.Router) {
       deleted = await removeGuildPermanently(guildId, { deleteHistoricalData });
     } catch (err) {
       console.error(`Error while permanently removing server ${guildId}:`, err);
-      return serverError(res, "Failed to remove the server; no changes were committed. You can retry safely.");
+      return serverError(
+        res,
+        `Failed to remove the server; no changes were committed. You can retry safely. Cause: ${errorDetail(err)}`,
+      );
     }
 
     const discord: { requested: boolean; left: boolean | null; error: string | null } = {

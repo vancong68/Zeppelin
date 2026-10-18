@@ -189,7 +189,6 @@ export default {
         api_audit_log: "dashboard audit log entries",
         antiraid_levels: "antiraid levels",
         auto_reactions: "command auto-reactions",
-        button_roles: "button roles",
         context_menus: "context menu links",
         counters: "counters",
         counter_triggers: "counter triggers",
