@@ -9,6 +9,7 @@ import { initAuth } from "./auth.js";
 import { initDocs } from "./docs.js";
 import { initGuildsAPI } from "./guilds/index.js";
 import { clientError, error, notFound } from "./responses.js";
+import { initStaff } from "./staff.js";
 import { startBackgroundTasks } from "./tasks.js";
 
 const apiPathPrefix = env.API_PATH_PREFIX || (env.NODE_ENV === "development" ? "/api" : "");
@@ -33,6 +34,7 @@ initAuth(rootRouter);
 initGuildsAPI(rootRouter);
 initArchives(rootRouter);
 initDocs(rootRouter);
+initStaff(rootRouter);
 
 // Default route
 rootRouter.get("/", (req, res) => {

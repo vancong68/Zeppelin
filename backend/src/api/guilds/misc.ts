@@ -12,7 +12,7 @@ import { AuditLogEventTypes } from "../../data/apiAuditLogTypes.js";
 import { isSnowflake } from "../../utils.js";
 import { loadYamlSafely } from "../../utils/loadYamlSafely.js";
 import { ObjectAliasError } from "../../utils/validateNoObjectAliases.js";
-import { hasGuildPermission, requireGuildPermission } from "../permissions.js";
+import { hasGuildPermission, requireAllowedGuild, requireGuildPermission } from "../permissions.js";
 import { clientError, ok, serverError, unauthorized } from "../responses.js";
 
 const apiPermissionAssignments = new ApiPermissionAssignments();
@@ -37,7 +37,7 @@ export function initGuildsMiscAPI(router: express.Router) {
     },
   );
 
-  miscRouter.get("/:guildId", async (req: Request, res: Response) => {
+  miscRouter.get("/:guildId", requireAllowedGuild(), async (req: Request, res: Response) => {
     if (!(await hasGuildPermission(req.user!.userId, req.params.guildId, ApiPermissions.ViewGuild))) {
       return unauthorized(res);
     }
@@ -46,7 +46,7 @@ export function initGuildsMiscAPI(router: express.Router) {
     res.json(guild);
   });
 
-  miscRouter.post("/:guildId/check-permission", async (req: Request, res: Response) => {
+  miscRouter.post("/:guildId/check-permission", requireAllowedGuild(), async (req: Request, res: Response) => {
     const permission = req.body.permission;
     const hasPermission = await hasGuildPermission(req.user!.userId, req.params.guildId, permission);
     res.json({ result: hasPermission });
@@ -54,6 +54,7 @@ export function initGuildsMiscAPI(router: express.Router) {
 
   miscRouter.get(
     "/:guildId/config",
+    requireAllowedGuild(),
     requireGuildPermission(ApiPermissions.ReadConfig),
     async (req: Request, res: Response) => {
       const config = await configs.getActiveByKey(`guild-${req.params.guildId}`);
@@ -61,51 +62,57 @@ export function initGuildsMiscAPI(router: express.Router) {
     },
   );
 
-  miscRouter.post("/:guildId/config", requireGuildPermission(ApiPermissions.EditConfig), async (req, res) => {
-    let config = req.body.config;
-    if (config == null) return clientError(res, "No config supplied");
+  miscRouter.post(
+    "/:guildId/config",
+    requireAllowedGuild(),
+    requireGuildPermission(ApiPermissions.EditConfig),
+    async (req, res) => {
+      let config = req.body.config;
+      if (config == null) return clientError(res, "No config supplied");
 
-    config = config.trim() + "\n"; // Normalize start/end whitespace in the config
+      config = config.trim() + "\n"; // Normalize start/end whitespace in the config
 
-    const currentConfig = await configs.getActiveByKey(`guild-${req.params.guildId}`);
-    if (currentConfig && config === currentConfig.config) {
-      return ok(res);
-    }
-
-    // Validate config
-    let parsedConfig;
-    try {
-      parsedConfig = loadYamlSafely(config);
-    } catch (e) {
-      if (e instanceof YAMLException) {
-        return res.status(400).json({ errors: [e.message] });
+      const currentConfig = await configs.getActiveByKey(`guild-${req.params.guildId}`);
+      if (currentConfig && config === currentConfig.config) {
+        return ok(res);
       }
 
-      if (e instanceof ObjectAliasError) {
-        return res.status(400).json({ errors: [e.message] });
+      // Validate config
+      let parsedConfig;
+      try {
+        parsedConfig = loadYamlSafely(config);
+      } catch (e) {
+        if (e instanceof YAMLException) {
+          return res.status(400).json({ errors: [e.message] });
+        }
+
+        if (e instanceof ObjectAliasError) {
+          return res.status(400).json({ errors: [e.message] });
+        }
+
+        // tslint:disable-next-line:no-console
+        console.error("Error when loading YAML: " + e.message);
+        return serverError(res, "Server error");
       }
 
-      // tslint:disable-next-line:no-console
-      console.error("Error when loading YAML: " + e.message);
-      return serverError(res, "Server error");
-    }
+      if (parsedConfig == null) {
+        parsedConfig = {};
+      }
 
-    if (parsedConfig == null) {
-      parsedConfig = {};
-    }
+      const error = await validateGuildConfig(parsedConfig);
+      if (error) {
+        return res.status(422).json({ errors: [error] });
+      }
 
-    const error = await validateGuildConfig(parsedConfig);
-    if (error) {
-      return res.status(422).json({ errors: [error] });
-    }
+      await configs.saveNewRevision(`guild-${req.params.guildId}`, config, req.user!.userId);
 
-    await configs.saveNewRevision(`guild-${req.params.guildId}`, config, req.user!.userId);
-
-    ok(res);
-  });
+      ok(res);
+    },
+  );
 
   miscRouter.get(
     "/:guildId/permissions",
+    requireAllowedGuild(),
     requireGuildPermission(ApiPermissions.ManageAccess),
     async (req: Request, res: Response) => {
       const permissions = await apiPermissionAssignments.getByGuildId(req.params.guildId);
@@ -116,6 +123,7 @@ export function initGuildsMiscAPI(router: express.Router) {
   const permissionManagementQueue = new Queue();
   miscRouter.post(
     "/:guildId/set-target-permissions",
+    requireAllowedGuild(),
     requireGuildPermission(ApiPermissions.ManageAccess),
     async (req: Request, res: Response) => {
       await permissionManagementQueue.add(async () => {

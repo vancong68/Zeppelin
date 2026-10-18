@@ -75,6 +75,20 @@ export const GuildStore: Module<GuildState, RootState> = {
     async exportData({ commit }, { guildId }) {
       return post(`guilds/${guildId}/export`);
     },
+
+    async loadRemovalPreview({ commit }, guildId) {
+      return get(`guilds/${guildId}/removal-preview`);
+    },
+
+    async removeGuildPermanently({ commit }, { guildId, confirmGuildId, deleteHistoricalData, leaveDiscordServer }) {
+      const result = await post(`guilds/${guildId}/permanent-removal`, {
+        confirmGuildId,
+        deleteHistoricalData,
+        leaveDiscordServer,
+      });
+      commit("removeGuild", guildId);
+      return result;
+    },
   },
 
   mutations: {
@@ -85,6 +99,15 @@ export const GuildStore: Module<GuildState, RootState> = {
     addGuild(state: GuildState, guild) {
       state.available.set(guild.id, guild);
       state.available = state.available;
+    },
+
+    removeGuild(state: GuildState, guildId: string) {
+      const available = new Map(state.available);
+      available.delete(guildId);
+      state.available = available;
+
+      delete state.configs[guildId];
+      delete state.guildPermissionAssignments[guildId];
     },
 
     setConfig(state: GuildState, { guildId, config }) {

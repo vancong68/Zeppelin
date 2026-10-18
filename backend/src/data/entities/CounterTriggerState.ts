@@ -1,9 +1,8 @@
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity("counter_trigger_states")
 export class CounterTriggerState {
-  @Column({ type: "bigint", generated: "increment" })
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn({ type: "bigint" })
   id: string;
 
   @Column()

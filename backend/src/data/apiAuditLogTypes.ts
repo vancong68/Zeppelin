@@ -5,6 +5,7 @@ export const AuditLogEventTypes = {
   EDIT_API_PERMISSION: "EDIT_API_PERMISSION" as const,
   REMOVE_API_PERMISSION: "REMOVE_API_PERMISSION" as const,
   EDIT_CONFIG: "EDIT_CONFIG" as const,
+  PERMANENT_GUILD_REMOVAL: "PERMANENT_GUILD_REMOVAL" as const,
 };
 
 export type AuditLogEventType = keyof typeof AuditLogEventTypes;
@@ -40,6 +41,15 @@ export interface AuditLogEventData extends Record<AuditLogEventType, unknown> {
   };
 
   EDIT_CONFIG: Record<string, never>;
+
+  PERMANENT_GUILD_REMOVAL: {
+    guild_name: string | null;
+    delete_historical_data: boolean;
+    leave_discord_server: boolean;
+    deleted_always_total: number;
+    deleted_historical_total: number;
+    discord_left: boolean | null;
+  };
 }
 
 export type AnyAuditLogEventData = AuditLogEventData[AuditLogEventType];

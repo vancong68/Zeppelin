@@ -1,6 +1,8 @@
 <template>
   <div v-if="loading">Loading...</div>
   <div v-else>
+    <div v-if="removedNotice" class="mb-4 rounded bg-green-900/40 p-3">{{ removedNotice }}</div>
+
     <h1>Guilds</h1>
     <ul class="list-none flex flex-wrap -m-4 pt-4">
       <li v-for="guild in guilds" class="flex-none p-4 w-full md:w-1/2 lg:w-1/3 xl:w-1/4">
@@ -38,27 +40,51 @@
                 :to="'/dashboard/guilds/' + guild.id + '/import-export'"
                 >Import/export</router-link
               >
+              <a
+                v-if="isStaff"
+                class="inline-block bg-red-900 rounded px-1 hover:bg-red-800"
+                href="#"
+                v-on:click.prevent="openRemovalModal(guild)"
+                >Remove server</a
+              >
             </div>
           </div>
         </div>
       </li>
     </ul>
+
+    <RemoveGuildModal
+      v-if="removalGuild"
+      :guild="removalGuild"
+      @close="removalGuild = null"
+      @removed="onGuildRemoved"
+    />
   </div>
 </template>
 
 <script lang="ts">
 import { mapState } from "vuex";
 import { ApiPermissions, hasPermission } from "@zeppelinbot/shared/apiPermissions.js";
-import { AuthState, GuildState } from "../../store/types";
+import { AuthState, GuildState, StaffState } from "../../store/types";
+import RemoveGuildModal from "./RemoveGuildModal.vue";
 
 export default {
+  components: {
+    RemoveGuildModal,
+  },
+
   async mounted() {
     await this.$store.dispatch("guilds/loadAvailableGuilds");
     await this.$store.dispatch("guilds/loadMyPermissionAssignments");
+    this.$store.dispatch("staff/checkStatus").catch(() => {});
     this.loading = false;
   },
   data() {
-    return { loading: true };
+    return {
+      loading: true,
+      removalGuild: null,
+      removedNotice: "",
+    };
   },
   computed: {
     ...mapState("guilds", {
@@ -80,8 +106,23 @@ export default {
     ...mapState("auth", {
       userId: (state: AuthState) => state.userId!,
     }),
+
+    ...mapState("staff", {
+      isStaff: (state: StaffState) => state.isStaff,
+    }),
   },
   methods: {
+    openRemovalModal(guild) {
+      this.removalGuild = guild;
+    },
+
+    onGuildRemoved() {
+      if (this.removalGuild) {
+        this.removedNotice = `${this.removalGuild.name} (${this.removalGuild.id}) has been permanently removed from Zeppelin.`;
+      }
+      this.removalGuild = null;
+    },
+
     canManageAccess(guildId: string) {
       const guildPermissions = this.guildPermissionAssignments[guildId] || [];
       const myPermissions = guildPermissions.find((p) => p.type === "USER" && p.target_id === this.userId) || null;

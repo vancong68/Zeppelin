@@ -3,6 +3,7 @@ import { createStore, Store } from "vuex";
 import { AuthStore } from "./auth";
 import { DocsStore } from "./docs";
 import { GuildStore } from "./guilds";
+import { StaffStore } from "./staff";
 import { RootState } from "./types";
 
 export const RootStore = createStore({
@@ -10,6 +11,7 @@ export const RootStore = createStore({
     auth: AuthStore,
     guilds: GuildStore,
     docs: DocsStore,
+    staff: StaffStore,
   },
 });
 

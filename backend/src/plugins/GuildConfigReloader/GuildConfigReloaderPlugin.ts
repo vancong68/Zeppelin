@@ -1,4 +1,5 @@
 import { globalPlugin } from "vety";
+import { AllowedGuilds } from "../../data/AllowedGuilds.js";
 import { Configs } from "../../data/Configs.js";
 import { reloadChangedGuilds } from "./functions/reloadChangedGuilds.js";
 import { GuildConfigReloaderPluginType, zGuildConfigReloaderPluginConfig } from "./types.js";
@@ -12,7 +13,9 @@ export const GuildConfigReloaderPlugin = globalPlugin<GuildConfigReloaderPluginT
     const { state } = pluginData;
 
     state.guildConfigs = new Configs();
+    state.allowedGuilds = new AllowedGuilds();
     state.highestConfigId = await state.guildConfigs.getHighestId();
+    state.knownGuildIds = await state.allowedGuilds.getAllIds();
   },
 
   afterLoad(pluginData) {

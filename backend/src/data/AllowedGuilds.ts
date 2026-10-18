@@ -31,6 +31,11 @@ export class AllowedGuilds extends BaseRepository {
     });
   }
 
+  async getAllIds(): Promise<Set<string>> {
+    const rows = await this.allowedGuilds.find({ select: { id: true } });
+    return new Set(rows.map((row) => row.id));
+  }
+
   getForApiUser(userId: string) {
     return this.allowedGuilds
       .createQueryBuilder("allowed_guilds")

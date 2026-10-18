@@ -5,7 +5,7 @@ import { z } from "zod";
 import { GuildCases } from "../../data/GuildCases.js";
 import { Case } from "../../data/entities/Case.js";
 import { MINUTES } from "../../utils.js";
-import { requireGuildPermission } from "../permissions.js";
+import { requireAllowedGuild, requireGuildPermission } from "../permissions.js";
 import { rateLimit } from "../rateLimits.js";
 import { clientError, ok } from "../responses.js";
 
@@ -49,6 +49,7 @@ export function initGuildsImportExportAPI(guildRouter: express.Router) {
 
   importExportRouter.get(
     "/:guildId/pre-import",
+    requireAllowedGuild(),
     requireGuildPermission(ApiPermissions.ManageAccess),
     async (req: Request) => {
       const guildCases = GuildCases.getGuildInstance(req.params.guildId);
@@ -64,6 +65,7 @@ export function initGuildsImportExportAPI(guildRouter: express.Router) {
 
   importExportRouter.post(
     "/:guildId/import",
+    requireAllowedGuild(),
     requireGuildPermission(ApiPermissions.ManageAccess),
     rateLimit(
       (req) => `import-${req.params.guildId}`,
@@ -135,6 +137,7 @@ export function initGuildsImportExportAPI(guildRouter: express.Router) {
   const exportBatchSize = 500;
   importExportRouter.post(
     "/:guildId/export",
+    requireAllowedGuild(),
     requireGuildPermission(ApiPermissions.ManageAccess),
     rateLimit(
       (req) => `export-${req.params.guildId}`,

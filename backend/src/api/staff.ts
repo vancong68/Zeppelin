@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import { isStaff } from "../staff.js";
 import { apiTokenAuthHandlers } from "./auth.js";
 
-export function initStaff(app: express.Express) {
+export function initStaff(router: express.Router) {
   const staffRouter = express.Router();
   staffRouter.use(...apiTokenAuthHandlers());
 
@@ -11,5 +11,5 @@ export function initStaff(app: express.Express) {
     res.json({ isStaff: userIsStaff });
   });
 
-  app.use("/staff", staffRouter);
+  router.use("/staff", staffRouter);
 }
